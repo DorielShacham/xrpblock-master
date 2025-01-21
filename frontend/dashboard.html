@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon/favicon-32x32.png">
+    <title>XRPBlock Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HM3N402YPM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-HM3N402YPM');
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --table-border-color: #ccc;
+            --table-header-bg: #f4f4f4;
+            --link-color: #007bff;
+            --hover-link-color: #0056b3;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1e1e2f;
+            --text-color: #e4e4e4;
+            --table-border-color: #444;
+            --table-header-bg: #333;
+            --link-color: #4dabf7;
+            --hover-link-color: #2196f3;
+        }
+
+        * {
+            font-family: 'Markazi Text', serif;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: var(--table-header-bg);
+            border-bottom: 1px solid var(--table-border-color);
+            margin-bottom: 20px;
+        }
+
+        .nav-links a {
+            font-size: xx-large;
+            margin: 0 10px;
+            text-decoration: none;
+            color: var(--link-color);
+        }
+
+        .nav-links a:hover {
+            color: var(--hover-link-color);
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--link-color);
+            color: #fff;
+            font-size: 1.5rem;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid var(--table-border-color);
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close-btn {
+            color: var(--text-color);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: var(--link-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Adjust filter layout within the modal */
+        .filters {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filters div {
+            margin-bottom: 15px;
+        }
+
+        .filters select,
+        .filters input {
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        #filter__submit {
+            cursor: pointer;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--link-color);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        #chart-container {
+            width: 80%;
+            margin: 20px auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th,
+        table td {
+            border: 1px solid var(--table-border-color);
+            padding: 10px;
+            text-align: center;
+        }
+
+        table th {
+            background-color: var(--table-header-bg);
+        }
+
+        table td a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        table td a:hover {
+            text-decoration: underline;
+        }
+
+        .in-transaction td:nth-child(4) {
+            background-color: rgba(75, 192, 192, 0.5);
+        }
+
+        .out-transaction td:nth-child(4) {
+            background-color: rgba(255, 99, 132, 0.5);
+        }
+
+        tr:hover {
+            border: 1.5px dotted black;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="charts.html">Charts</a>
+            <a href="tables.html">Tables</a>
+            <a href="about.html">About</a>
+        </div>
+        <button class="theme-toggle" id="theme-toggle">Toggle Dark Mode</button>
+    </header>
+
+    <!-- Add this modal structure to your HTML -->
+    <button id="filter-button" class="theme-toggle">
+        Show Current Filters: (Date Range: N/A, Min Amount: N/A)
+    </button>
+    <div id="filterModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <h2>Apply Filters</h2>
+            <div class="filters">
+                <div>
+                    <label for="date-filter">Date Range:</label>
+                    <input type="date" id="start-date">
+                    <input type="date" id="end-date">
+                </div>
+                <div>
+                    <label for="amount-filter">Minimum Amount:</label>
+                    <input type="number" id="min-amount" placeholder="Enter amount">
+                </div>
+                <div>
+                    <button id="filter__submit" onclick="applyFilters()">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chart-container">
+        <canvas id="walletChart"></canvas>
+    </div>
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>From Account</th>
+                <th>To Account</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody id="transaction-table-body">
+            <!-- Transactions will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <script>
+        let chartInstance = null;
+        let transactions = [];
+        let walletAddress = "";
+        let tableData = [];
+        const themeToggleButton = document.getElementById("theme-toggle");
+        const currentTheme = localStorage.getItem("theme") || "light";
+
+        document.body.setAttribute("data-theme", currentTheme);
+
+        themeToggleButton.textContent =
+            currentTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
+
+        themeToggleButton.addEventListener("click", () => {
+            const newTheme = document.body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+            document.body.setAttribute("data-theme", newTheme);
+            themeToggleButton.textContent =
+                newTheme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode";
+            localStorage.setItem("theme", newTheme);
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const walletAddress = sessionStorage.getItem("walletAddress");  // Fetch wallet address from sessionStorage
+
+            if (walletAddress) {
+                // Use the wallet address to make a request for transaction data
+                console.log('Wallet Address:', walletAddress);
+
+                // Update the header with the wallet address
+                const header = document.querySelector('header');
+
+                const walletLabel = document.createElement("p");  // Create a new paragraph element
+                walletLabel.textContent = `Wallet Address: ${walletAddress}`;
+                walletLabel.style.fontSize = 'large';
+                walletLabel.style.marginLeft = '20px';
+
+                // Append the wallet label to the header
+                header.appendChild(walletLabel);
+            }
+        });
+
+        async function fetchWalletData(address) {
+            try {
+                walletAddress = address;
+                const transactionsUrl = `https://api.xrpscan.com/api/v1/account/${address}/transactions`;
+                const response = await fetch(transactionsUrl);
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch wallet transactions");
+                }
+
+                const data = await response.json();
+                transactions = data.transactions || [];
+                tableData = transactions;
+                renderChart(transactions);
+                renderTable(transactions);
+            } catch (error) {
+                console.error("Error fetching wallet data:", error);
+                alert("Failed to load wallet data. Please try again later.");
+            }
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById("walletChart").getContext("2d");
+
+            // Destroy existing chart instance, if any
+            if (chartInstance) chartInstance.destroy();
+
+            // Group transactions by date
+            const groupedData = {};
+            data.forEach(transaction => {
+                const date = formatDate(transaction.date).split(" ")[0]; // Use only the date (no time)
+                if (!groupedData[date]) {
+                    groupedData[date] = { in: 0, out: 0 };
+                }
+                if (transaction.Destination === walletAddress) {
+                    groupedData[date].in += transaction.Amount.value / 1000000;
+                } else {
+                    groupedData[date].out += transaction.Amount.value / 1000000;
+                }
+            });
+
+            // Extract labels and datasets
+            const labels = Object.keys(groupedData).sort((a, b) => {
+                // Parse the date in DD/MM/YYYY format
+                const [dayA, monthA, yearA] = a.split('/');
+                const [dayB, monthB, yearB] = b.split('/');
+
+                // Create Date objects in YYYY-MM-DD format
+                const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
+                const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
+
+                return dateA - dateB;  // Sort by date
+            });
+            const inValues = labels.map(date => groupedData[date].in);
+            const outValues = labels.map(date => groupedData[date].out);
+
+            // Create the chart
+            chartInstance = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: "IN Transactions",
+                            data: inValues,
+                            backgroundColor: "rgba(75, 192, 192, 0.5)",
+                            borderColor: "rgba(75, 192, 192, 1)",
+                        },
+                        {
+                            label: "OUT Transactions",
+                            data: outValues,
+                            backgroundColor: "rgba(255, 99, 132, 0.5)",
+                            borderColor: "rgba(255, 99, 132, 1)",
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: "Date" },
+                        },
+                        y: {
+                            title: { display: true, text: "Amount (XRP)" },
+                            beginAtZero: true,
+                        }
+                    }
+                }
+            });
+        }
+
+
+        function renderTable(data) {
+            const tableBody = document.getElementById("transaction-table-body");
+            tableBody.innerHTML = "";
+
+            data.forEach(transaction => {
+                const row = document.createElement("tr");
+                row.className = transaction.Destination === walletAddress ? "in-transaction" : "out-transaction";
+
+                const fromLink = `<a href="https://xrpscan.com/account/${transaction.Account}" target="_blank">${transaction.Account}</a>`;
+                const toLink = `<a href="https://xrpscan.com/account/${transaction.Destination}" target="_blank">${transaction.Destination}</a>`;
+                const amount = `${(transaction.Amount.value / 1000000).toFixed(6)} XRP`;
+
+                row.innerHTML = `
+                    <td>${formatDate(transaction.date)}</td>
+                    <td>${fromLink}</td>
+                    <td>${toLink}</td>
+                    <td>${amount}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function applyFilters() {
+            const startDate = document.getElementById("start-date").value;
+            const endDate = document.getElementById("end-date").value;
+            const minAmount = document.getElementById("min-amount").value;
+
+            const filteredData = tableData.filter(transaction => {
+                const transactionDate = new Date(transaction.date);
+                return (!startDate || transactionDate >= new Date(startDate)) &&
+                    (!endDate || transactionDate <= new Date(endDate)) &&
+                    (!minAmount || transaction.Amount.value >= minAmount * 1000000);
+            });
+
+            renderChart(filteredData);
+            renderTable(filteredData);
+        }
+        // Get the modal and button elements
+        const filterButton = document.getElementById("filter-button");
+        const filterModal = document.getElementById("filterModal");
+        const closeModalButton = document.getElementById("close-modal");
+
+        // Add event listener to the filter button to open the modal
+        filterButton.addEventListener("click", () => {
+            filterModal.style.display = "block"; // Show the modal
+        });
+
+        // Add event listener to the close button to close the modal
+        closeModalButton.addEventListener("click", () => {
+            filterModal.style.display = "none"; // Hide the modal
+        });
+
+        // Add event listener for clicking outside the modal to close it
+        window.addEventListener("click", (event) => {
+            if (event.target === filterModal) {
+                filterModal.style.display = "none"; // Hide the modal
+            }
+        });
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+            }).replace(",", "");
+        }
+
+        const walletAddressFromSession = sessionStorage.getItem("walletAddress");
+        if (walletAddressFromSession) {
+            fetchWalletData(walletAddressFromSession);
+        } else {
+            alert("Please enter your wallet address.");
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+
+</html>

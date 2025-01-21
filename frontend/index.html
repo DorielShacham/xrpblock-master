@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon/favicon-32x32.png">
+    <title>XRPBlock</title>
+    <!-- Google Tag Manager -->
+    <script>(function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-WP6CPTJ7');</script>
+    <!-- End Google Tag Manager -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HM3N402YPM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-HM3N402YPM');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Flow+Circular&display=swap');
+
+        #wallet__btn {
+            width: 25%;
+            height: 5%;
+            cursor: pointer;
+            width: 10rem;
+            background-color: #4dabf7;
+            color: white;
+            border-radius: 6px;
+            margin-bottom: 50vh;
+            transition: 0.3s;
+        }
+
+        #wallet__btn:hover {
+            background-color: #2196f3;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Google Tag Manager -->
+    <script>(function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-WP6CPTJ7');</script>
+    <!-- End Google Tag Manager -->
+    <form id="walletForm">
+        <label id="wallet__title" for="wallet__input">XRP Wallet Address:</label>
+        <input id="wallet__input" type="text" placeholder="Enter XRP wallet address">
+        <br>
+        <button id="wallet__btn" type="submit">Check Wallet</button>
+    </form>
+    <script>
+        document.getElementById("walletForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const walletAddress = document.getElementById("wallet__input").value.trim();
+            sessionStorage.setItem("walletAddress", walletAddress);
+            window.location.href = "loader.html";
+        });
+    </script>
+</body>
+
+</html>
