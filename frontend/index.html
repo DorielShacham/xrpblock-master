@@ -25,31 +25,49 @@
 
         gtag('config', 'G-HM3N402YPM');
     </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1723436791336055"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1723436791336055"
+        crossorigin="anonymous"></script>
+    <!-- Horizontal-xrpblock -->
+    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-1723436791336055" data-ad-slot="1842390278"
+        data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Flow+Circular&display=swap');
-
+        * {
+            font-family: 'Markazi Text', serif;
+        }
         #wallet__btn {
             width: 25%;
             height: 5%;
             cursor: pointer;
             width: 10rem;
-            background-color: #4dabf7;
+            background: #3052ff;
             color: white;
             border-radius: 6px;
             margin-bottom: 50vh;
             transition: 0.3s;
+            font-weight: bold;
+            transition: background 0.3s ease;
         }
 
         #wallet__btn:hover {
-            background-color: #2196f3;
-            color: white;
+            color: #3052ff;
+            background: #f3f5ff;
+            opacity: 0.9;
         }
     </style>
 </head>
 
 <body>
+
     <!-- Google Tag Manager -->
     <script>(function (w, d, s, l, i) {
             w[l] = w[l] || []; w[l].push({
@@ -60,12 +78,19 @@
                     'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
         })(window, document, 'script', 'dataLayer', 'GTM-WP6CPTJ7');</script>
     <!-- End Google Tag Manager -->
+
+
+    <amp-auto-ads type="adsense" data-ad-client="ca-pub-1723436791336055">
+    </amp-auto-ads>
+
+
     <form id="walletForm">
         <label id="wallet__title" for="wallet__input">XRP Wallet Address:</label>
         <input id="wallet__input" type="text" placeholder="Enter XRP wallet address">
         <br>
         <button id="wallet__btn" type="submit">Check Wallet</button>
     </form>
+
     <script>
         document.getElementById("walletForm").addEventListener("submit", (e) => {
             e.preventDefault();

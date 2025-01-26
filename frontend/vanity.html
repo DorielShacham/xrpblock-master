@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon/favicon-32x32.png">
+    <script src="https://xaman.app/assets/cdn/xumm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/client@2.7.0/dist/umd/index.min.js" defer></script>
+    <script src="https://unpkg.com/xrpl/build/xrpl-latest-min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
+    <title>Vanity XRP Wallet Generator</title>
+    <style>
+        * {
+            font-family: "Markazi Text", serif;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0d1b2a;
+            color: #ffffff;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: #1e3a58;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        h1,
+        label,
+        input,
+        button {
+            width: 100%;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        input {
+            background: #142d4c;
+            color: #ffffff;
+        }
+
+        input::placeholder {
+            color: #a8b3c4;
+        }
+
+        button {
+            background: #3052ff;
+            color: #ffffff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            color: #3052ff;
+            background: #f3f5ff;
+            opacity: 0.9;
+        }
+
+        #results {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Vanity XRP Wallet Generator</h1>
+        <h1 id="accountaddress">...</h1>
+        <button id="signinbutton" onclick="xumm.authorize()">Login</button>
+        <button id="logoutbutton" onclick="xumm.logout()">Logout</button>
+        <br>
+        <label for="desired-wallet">Desired Wallet Pattern:</label>
+        <input type="text" id="desired-wallet" placeholder="Enter desired wallet pattern">
+        <br><br>
+        <button id="start-search">Start Search</button>
+        <div id="results"></div>
+    </div>
+
+    <footer>
+        &copy; 2025 XRPBlock Wallet Generator. All rights reserved.
+    </footer>
+
+
+
+
+    <!-- XAMAN -->
+    <script src="https://xumm.app/assets/cdn/xumm.min.js"></script>
+    <script>
+        var xumm = new Xumm("bb92bf0f-5442-4498-a1f6-cdcbe058e825");
+
+        xumm.on("ready", () => console.log("Ready (e.g. hide loading state of page)"));
+
+        xumm.on("ready", async () => {
+            const storedWalletId = sessionStorage.getItem('walletId');
+
+            if (!storedWalletId) {
+                console.log(xumm.user.account);
+                // Only fetch and store the wallet address if it's not already stored
+                xumm.user.account.then(account => {
+                    document.getElementById('accountaddress').innerText = account;
+                    sessionStorage.setItem('walletId', account);
+                    window.location.reload(); // Reload the page after setting the wallet address
+                });
+            } else {
+                console.log("User already logged in with wallet ID:", storedWalletId);
+                // Render the already stored wallet ID
+                document.getElementById('accountaddress').innerText = storedWalletId;
+            }
+        });
+
+        xumm.on("success", async () => {
+            xumm.user.account.then(account => {
+                const walletAddress = account;
+                console.log(walletAddress);
+
+                document.getElementById('accountaddress').innerText = walletAddress;
+                sessionStorage.setItem('walletId', account);
+            });
+        });
+
+        xumm.on("logout", async () => {
+            sessionStorage.removeItem('walletId');
+            document.getElementById('accountaddress').innerText = '...';
+        });
+    </script>
+
+    <script>
+        const xrpl = window.xrpl; // Using xrpl.js from CDN
+        let foundWallets = []; // To store the matching wallets
+        let selectedWallet = null; // To store the selected wallet address
+        let walletConnector = null; // Store WalletConnect instance
+        let userWalletAddress = ""; // Store the user's wallet address
+
+        // Simulate wallet generation (starting with 'r' and 25-35 characters long)
+        async function generateWallet() {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            let address = "r";
+            while (address.length < Math.floor(Math.random() * 11) + 25) {
+                address += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return address;
+        }
+
+        document.getElementById("start-search").addEventListener("click", async () => {
+            const desiredPattern = document.getElementById("desired-wallet").value.toLowerCase();
+            const numWallets = parseInt(document.getElementById("num-wallets").value) || 1;
+            const resultsDiv = document.getElementById("results");
+
+            if (desiredPattern.length === 0 || desiredPattern.length > 34) {
+                resultsDiv.innerHTML = "Invalid desired wallet pattern!";
+                return;
+            }
+
+            resultsDiv.innerHTML = "Searching for wallets that match the desired pattern...";
+            foundWallets = []; // Reset the found wallets
+            const maxAttempts = 500000; // Set a max attempt limit to avoid infinite loops
+            let attempts = 0;
+
+            while (foundWallets.length < numWallets && attempts < maxAttempts) {
+                const wallet = await generateWallet();
+                attempts++;
+
+                // Check if the wallet starts with "r" + desiredPattern
+                if (wallet.toLowerCase().startsWith("r" + desiredPattern)) {
+                    foundWallets.push(wallet);
+                }
+            }
+
+            if (foundWallets.length > 0) {
+                document.getElementById("vanity-setup").style.display = "block";
+                const walletList = document.getElementById("wallet-list");
+                walletList.innerHTML = "";
+
+                foundWallets.forEach((wallet) => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = wallet;
+                    listItem.onclick = () => selectWallet(listItem, wallet);
+                    walletList.appendChild(listItem);
+                });
+
+                resultsDiv.innerHTML = `<p>Found ${foundWallets.length} matching wallet(s) after ${attempts} attempts!</p>`;
+            } else {
+                resultsDiv.innerHTML = `<p>No matching wallets found after ${attempts} attempts.</p>`;
+            }
+        });
+
+        function selectWallet(walletElement, wallet) {
+            // Remove the 'selected' class from all wallet items
+            document.querySelectorAll("#wallet-list li").forEach(item => {
+                item.classList.remove("selected");
+            });
+
+            // Add the 'selected' class to the clicked wallet
+            walletElement.classList.add("selected");
+            selectedWallet = wallet;
+
+            // Display the selected wallet ID in a separate area
+            document.getElementById("results").innerHTML = `<p>Selected Wallet: ${wallet}</p>`;
+        }
+
+
+
+
+        async function checkWalletConnection() {
+            try {
+                const user = await xumm.authorize();
+                if (!user) {
+                    alert("Please log in using the Xumm app.");
+                    return null;
+                }
+                return user;
+            } catch (error) {
+                console.error("Error checking wallet connection:", error);
+                alert("Error connecting to the wallet. Please try again.");
+                return null;
+            }
+        }
+
+        document.getElementById("set-vanity-wallet").addEventListener("click", async () => {
+            if (!selectedWallet) {
+                alert("Please select a wallet first!");
+                return;
+            }
+
+            const user = await checkWalletConnection();
+            if (!user) return; // Exit if the user is not logged in
+
+            try {
+                // Use Xumm SDK to create a payment or Trust Line transaction
+                const payload = await xumm.payload.create({
+                    TransactionType: "Payment",
+                    Destination: selectedWallet,
+                    Amount: "1", // Value in drops (1 XRP = 1,000,000 drops)
+                    Memos: [
+                        {
+                            Memo: {
+                                MemoType: "VanityWallet",
+                                MemoData: Buffer.from("Setting Vanity Wallet").toString("hex"),
+                            },
+                        },
+                    ],
+                });
+
+                alert("Please approve the transaction in your Xumm app.");
+
+                // Wait for user approval
+                const result = await xumm.payload.subscribe(payload.uuid);
+
+                if (result.signed) {
+                    alert("Successfully created Vanity Wallet!");
+                } else {
+                    alert("Transaction was declined or canceled.");
+                }
+
+                // Reset UI or perform further actions
+            } catch (error) {
+                console.error("Error creating Vanity Wallet:", error);
+                alert("Error during wallet setup. Please try again.");
+            }
+        });
+    </script>
+</body>
+
+</html>
