@@ -44,6 +44,7 @@
         * {
             font-family: 'Markazi Text', serif;
         }
+
         #wallet__btn {
             width: 25%;
             height: 5%;
@@ -86,7 +87,7 @@
 
     <form id="walletForm">
         <label id="wallet__title" for="wallet__input">XRP Wallet Address:</label>
-        <input id="wallet__input" type="text" placeholder="Enter XRP wallet address">
+        <input id="wallet__input" type="text" placeholder="Enter XRP wallet address" required>
         <br>
         <button id="wallet__btn" type="submit">Check Wallet</button>
     </form>
@@ -95,10 +96,15 @@
         document.getElementById("walletForm").addEventListener("submit", (e) => {
             e.preventDefault();
             const walletAddress = document.getElementById("wallet__input").value.trim();
-            sessionStorage.setItem("walletAddress", walletAddress);
-            window.location.href = "loader.html";
+            if (walletAddress) {
+                // Pass the wallet address as a query parameter to loader.html
+                window.location.href = `loader.html?q=${encodeURIComponent(walletAddress)}`;
+            } else {
+                alert("Please enter a valid XRP wallet address.");
+            }
         });
     </script>
+
 </body>
 
 </html>

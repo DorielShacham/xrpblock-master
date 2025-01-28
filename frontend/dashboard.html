@@ -296,7 +296,6 @@
         tr:hover {
             border: 1.5px dotted black;
         }
-
     </style>
 </head>
 
@@ -378,9 +377,9 @@
         let tableData = [];
         const sunIcon = document.getElementById("sun-icon");
         const moonIcon = document.getElementById("moon-icon");
-
+    
         let currentTheme = localStorage.getItem("theme") || "light";
-
+    
         // Set the initial theme and icons
         document.body.setAttribute("data-theme", currentTheme);
         if (currentTheme === "dark") {
@@ -390,12 +389,12 @@
             sunIcon.style.display = "none";
             moonIcon.style.display = "block";
         }
-
+    
         function toggleTheme() {
             // Toggle the theme
             currentTheme = currentTheme === "dark" ? "light" : "dark";
             document.body.setAttribute("data-theme", currentTheme);
-
+    
             // Toggle the icons
             if (currentTheme === "dark") {
                 sunIcon.style.display = "block";
@@ -404,113 +403,121 @@
                 sunIcon.style.display = "none";
                 moonIcon.style.display = "block";
             }
-
+    
             // Save the theme in localStorage
             localStorage.setItem("theme", currentTheme);
         }
-
+    
         document.addEventListener('DOMContentLoaded', () => {
-            const walletAddress = sessionStorage.getItem("walletAddress");  // Fetch wallet address from sessionStorage
-
+            walletAddress = sessionStorage.getItem("walletAddress"); 
             if (walletAddress) {
                 console.log('Wallet Address:', walletAddress);
                 fetchWalletData(walletAddress);
-
+    
                 // Update the header with the wallet address
                 const header = document.querySelector('header');
-
                 if (!document.querySelector('#wallet-label')) {
-                    const walletLabel = document.createElement("p"); // Create a new paragraph element
-                    walletLabel.id = "wallet-label"; // Add an ID for styling and identification
+                    const walletLabel = document.createElement("p");
+                    walletLabel.id = "wallet-label";
                     walletLabel.textContent = `Wallet Address: ${walletAddress}`;
                     walletLabel.style.fontSize = 'large';
                     walletLabel.style.marginLeft = '20px';
-                    walletLabel.style.color = "var(--text-color)"; // Match theme colors dynamically
-
-                    // Append the wallet label to the header
+                    walletLabel.style.color = "var(--text-color)";
                     header.appendChild(walletLabel);
                 }
             }
         });
-
-
+    
+        function handleQueryParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterParam = urlParams.get('filter');
+            const walletParam = urlParams.get('wallet');
+    
+            console.log("Filter Param:", filterParam);
+            console.log("Wallet Param:", walletParam);
+    
+            if (walletParam) {
+                document.getElementById('wallet-balance').innerText = `Wallet: ${walletParam}`;
+            } else {
+                document.getElementById('wallet-balance').innerText = 'No wallet address provided';
+            }
+    
+            if (filterParam) {
+                switch (filterParam.toLowerCase()) {
+                    case 'transactions':
+                        document.getElementById('chart-container').innerHTML = '<p>Displaying Transactions Data...</p>';
+                        break;
+                    case 'charts':
+                        document.getElementById('chart-container').innerHTML = '<p>Displaying Charts...</p>';
+                        break;
+                    case 'stats':
+                        document.getElementById('chart-container').innerHTML = '<p>Displaying Stats...</p>';
+                        break;
+                    default:
+                        document.getElementById('chart-container').innerHTML = '<p>No specific filter applied.</p>';
+                }
+            } else {
+                document.getElementById('chart-container').innerHTML = '<p>Welcome to the Dashboard!</p>';
+            }
+        }
+    
         async function fetchWalletData(address) {
             try {
-                // Set the wallet address
                 walletAddress = address;
-
-                // Define API endpoints
+    
                 const balanceUrl = `https://api.xrpscan.com/api/v1/account/${address}`;
                 const transactionsUrl = `https://api.xrpscan.com/api/v1/account/${address}/transactions`;
-
-                // Fetch the balance data and transactions data simultaneously
+    
                 const [balanceResponse, transactionsResponse] = await Promise.all([
                     fetch(balanceUrl),
                     fetch(transactionsUrl)
                 ]);
-
-                // Check if both responses are valid
+    
                 if (!balanceResponse.ok || !transactionsResponse.ok) {
                     throw new Error("Failed to fetch wallet transactions or balance.");
                 }
-
-                // Parse the balance data
+    
                 const balanceData = await balanceResponse.json();
-
-
-                // Validate and display balance
+    
                 if (balanceData && typeof balanceData.xrpBalance === 'string') {
-                    // Use xrpBalance directly (already in XRP format)
                     const balance = parseFloat(balanceData.xrpBalance).toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                     });
-
-                    // Display the balance on the page
                     document.getElementById("wallet-balance").textContent = `Wallet Balance: ${balance} XRP`;
                     console.log("Wallet Balance:", balance);
                 } else if (balanceData && typeof balanceData.Balance === 'string') {
-                    // Convert Balance (drops) to XRP
                     const balance = (parseFloat(balanceData.Balance) / 1000000).toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                     });
-
-                    // Display the balance on the page
                     document.getElementById("wallet-balance").textContent = `Wallet Balance: ${balance} XRP`;
                     console.log("Wallet Balance (from drops):", balance);
                 } else {
-                    // Handle missing or invalid balance data
                     document.getElementById("wallet-balance").textContent = "Wallet Balance: N/A";
                     console.warn("Balance data is invalid or missing.");
                 }
-
-                // Parse the transactions data
+    
                 const transactionsData = await transactionsResponse.json();
                 transactions = transactionsData.transactions || [];
                 tableData = transactions;
-
-                // Render the chart and table
+    
                 renderChart(transactions);
                 renderTable(transactions);
             } catch (error) {
-                // Handle any errors that occur during the fetch process
                 console.error("Error fetching wallet data:", error);
                 alert("Failed to load wallet data.");
             }
         }
-
-
+    
         function renderChart(data) {
             const ctx = document.getElementById("walletChart").getContext("2d");
-
-            // Destroy existing chart instance, if any
+    
             if (chartInstance) chartInstance.destroy();
-
-            // Group transactions by date
+    
             const groupedData = {};
             data.forEach(transaction => {
-                const date = formatDate(transaction.date).split(" ")[0]; // Use only the date (no time)
+                const date = formatDate(transaction.date).split(" ")[0];
                 if (!groupedData[date]) {
                     groupedData[date] = { in: 0, out: 0 };
                 }
@@ -520,23 +527,18 @@
                     groupedData[date].out += transaction.Amount.value / 1000000;
                 }
             });
-
-            // Extract labels and datasets
+    
             const labels = Object.keys(groupedData).sort((a, b) => {
-                // Parse the date in DD/MM/YYYY format
                 const [dayA, monthA, yearA] = a.split('/');
                 const [dayB, monthB, yearB] = b.split('/');
-
-                // Create Date objects in YYYY-MM-DD format
                 const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
                 const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
-
-                return dateA - dateB;  // Sort by date
+                return dateA - dateB;
             });
+    
             const inValues = labels.map(date => groupedData[date].in);
             const outValues = labels.map(date => groupedData[date].out);
-
-            // Create the chart
+    
             chartInstance = new Chart(ctx, {
                 type: "bar",
                 data: {
@@ -570,86 +572,72 @@
                 }
             });
         }
-
-
+    
         function renderTable(data) {
             const tableBody = document.getElementById("transaction-table-body");
             tableBody.innerHTML = "";
-
+    
             data.forEach(transaction => {
+                const fromAccount = transaction.Account || "N/A";
+                const toAccount = transaction.Destination || "N/A";
+                const amountValue = transaction.Amount?.value || transaction.Amount || 0;
+                const formattedAmount = `${(amountValue / 1000000).toFixed(6)} XRP`;
+                const date = formatDate(transaction.date || transaction.executed_time || "Unknown");
+    
                 const row = document.createElement("tr");
-                row.className = transaction.Destination === walletAddress ? "in-transaction" : "out-transaction";
-
-                const fromLink = `<a href="https://xrpscan.com/account/${transaction.Account}" target="_blank">${transaction.Account}</a>`;
-                const toLink = `<a href="https://xrpscan.com/account/${transaction.Destination}" target="_blank">${transaction.Destination}</a>`;
-                const amount = `${(transaction.Amount.value / 1000000).toFixed(6)} XRP`;
-
+                row.className = toAccount === walletAddress ? "in-transaction" : "out-transaction";
+    
+                const fromLink = document.createElement("a");
+                fromLink.href = `https://www.xrpblock.com/dashboard.html?q=${fromAccount}`;
+                fromLink.innerText = fromAccount;
+                fromLink.onclick = (e) => {
+                    e.preventDefault();
+                    window.location.href = `https://www.xrpblock.com/dashboard.html?q=${fromAccount}`;
+                };
+    
+                const toLink = document.createElement("a");
+                toLink.href = `https://www.xrpblock.com/dashboard.html?q=${toAccount}`;
+                toLink.innerText = toAccount;
+                toLink.onclick = (e) => {
+                    e.preventDefault();
+                    window.location.href = `https://www.xrpblock.com/dashboard.html?q=${toAccount}`;
+                };
+    
                 row.innerHTML = `
-                    <td>${formatDate(transaction.date)}</td>
-                    <td>${fromLink}</td>
-                    <td>${toLink}</td>
-                    <td>${amount}</td>
+                    <td>${date}</td>
+                    <td></td>
+                    <td></td>
+                    <td>${formattedAmount}</td>
                 `;
+    
+                row.cells[1].appendChild(fromLink);
+                row.cells[2].appendChild(toLink);
+    
                 tableBody.appendChild(row);
             });
         }
-
+    
         function applyFilters() {
             const startDate = document.getElementById("start-date").value;
             const endDate = document.getElementById("end-date").value;
             const minAmount = document.getElementById("min-amount").value;
-
+    
             const filteredData = tableData.filter(transaction => {
                 const transactionDate = new Date(transaction.date);
                 return (!startDate || transactionDate >= new Date(startDate)) &&
                     (!endDate || transactionDate <= new Date(endDate)) &&
-                    (!minAmount || transaction.Amount.value >= minAmount * 1000000);
+                    (!minAmount || transaction.Amount.value / 1000000 >= parseFloat(minAmount));
             });
-
-            renderChart(filteredData);
+    
             renderTable(filteredData);
         }
-        // Get the modal and button elements
-        const filterButton = document.getElementById("filter-button");
-        const filterModal = document.getElementById("filterModal");
-        const closeModalButton = document.getElementById("close-modal");
-
-        // Add event listener to the filter button to open the modal
-        filterButton.addEventListener("click", () => {
-            filterModal.style.display = "block"; // Show the modal
-        });
-
-        // Add event listener to the close button to close the modal
-        closeModalButton.addEventListener("click", () => {
-            filterModal.style.display = "none"; // Hide the modal
-        });
-
-        // Add event listener for clicking outside the modal to close it
-        window.addEventListener("click", (event) => {
-            if (event.target === filterModal) {
-                filterModal.style.display = "none"; // Hide the modal
-            }
-        });
-
+    
         function formatDate(dateString) {
             const date = new Date(dateString);
-            return date.toLocaleString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-            }).replace(",", "");
-        }
-
-        const walletAddressFromSession = sessionStorage.getItem("walletAddress");
-        if (walletAddressFromSession) {
-            fetchWalletData(walletAddressFromSession);
-        } else {
-            alert("Please enter your wallet address.");
-            window.location.href = "index.html";
+            return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
         }
     </script>
+    
 
 
 
