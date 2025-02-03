@@ -51,16 +51,21 @@
     </div>
     <script>
         // Extract the wallet address from the query parameter
+        console.log(sessionStorage.getItem("walletAddress"));
+        const storedWallet = sessionStorage.getItem("walletAddress");
+        if (storedWallet) {
+            console.log("Stored Wallet Address:", storedWallet);
+        } else {
+            console.log("No wallet address found.");
+        }
         const params = new URLSearchParams(window.location.search);
         const walletAddress = params.get("q");
     
         if (walletAddress) {
-            // Redirect to dashboard.html with the wallet address as a query parameter
             setTimeout(() => {
                 window.location.href = `dashboard.html?q=${encodeURIComponent(walletAddress)}`;
             }, 2000); // Keep the loader for 2 seconds
         } else {
-            // Redirect to the home page if no wallet address is provided
             alert("No wallet address provided.");
             window.location.href = "index.html";
         }

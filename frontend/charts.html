@@ -19,14 +19,317 @@
     </script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1723436791336055"
         crossorigin="anonymous"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --table-border-color: #ccc;
+            --table-header-bg: #f4f4f4;
+            --link-color: #3052ff;
+            --hover-link-color: #0056b3;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1e1e2f;
+            --text-color: #e4e4e4;
+            --table-border-color: #444;
+            --table-header-bg: #333;
+            --link-color: #4dabf7;
+            --hover-link-color: #2196f3;
+        }
+
+        * {
+            font-family: 'Markazi Text', serif;
+            color: white;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 0;
+            width: 100%;
+            margin-left: 5rem;
+            overflow-y: auto;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column
+        }
+
+        header {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 10px;
+            background-color: #1e3a58;
+            border-bottom: 1px solid var(--table-border-color);
+            margin-bottom: 20px;
+            justify-content: space-around;
+        }
+
+        #wallet-label {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-left: 20px;
+        }
+
+        #chart-container {
+            width: 80%;
+            margin: 20px auto;
+            margin-top: 5rem;
+        }
+
+        #pie_chart-container {
+            width: 30rem;
+            height: 30rem;
+            margin: 3rem auto;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }   
+
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid var(--table-border-color);
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close-btn {
+            color: var(--text-color);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: var(--link-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Adjust filter layout within the modal */
+        .filters {
+            display: flex;
+            flex-direction: column;
+            align-content: flex-start;
+            flex-wrap: wrap;
+            align-items: stretch;
+        }
+
+        .filters div {
+            margin-bottom: 15px;
+        }
+
+        .filters select,
+        .filters input {
+            padding: 8px;
+            font-size: 16px;
+        }
+
+        #filter-button {
+            width: 15rem;
+            height: 3rem;
+            margin-top: 5rem;
+            font-size: medium;
+        }
+
+        #filter__submit {
+            cursor: pointer;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--link-color);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar-navigation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 5rem;
+            background-color: #1e3a58;
+            color: white;
+            overflow: hidden;
+        }
+
+        .sidebar-navigation ul {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            position: absolute;
+            top: 0;
+        }
+
+        .sidebar-navigation ul li {
+            position: relative;
+            padding: 20px 0;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar-navigation ul li a,
+        .sidebar-navigation ul li button {
+            display: block;
+            font-size: 16px;
+            color: white;
+            text-decoration: none;
+            margin-top: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .sidebar-navigation ul li i {
+            font-size: 24px;
+            color: white;
+            transition: color 0.3s ease;
+        }
+
+        .sidebar-navigation ul li:hover {
+            background-color: #22252E;
+        }
+
+        .sidebar-navigation ul li:hover i {
+            color: #3052ff;
+        }
+
+
+
+        /* Active Link */
+        .sidebar-navigation ul li.active {
+            background-color: #22252E;
+        }
+
+        .sidebar-navigation ul li.active i {
+            color: #3052ff;
+        }
+
+        .sidebar-navigation ul li.active a {
+            color: #3052ff;
+        }
+
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--link-color);
+            color: #fff;
+            font-size: 1.2rem;
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
-    <div>
-        In development...
+    <header>
+        <p id="wallet-balance" style="font-size: large; margin-left: 20px;"></p>
+    </header>
+
+    <nav class="sidebar-navigation">
+        <ul>
+            <li class="active">
+                <a href="index.html"><i class="fa fa-share-alt"></i></a>
+            </li>
+            <li>
+                <a href="charts.html"><i class="fa fa-bar-chart" style="font-size:36px"></i></a>
+            </li>
+            <li>
+                <a href="tables.html"><i class="fa fa-table" style="font-size:36px;"></i></a>
+            </li>
+            <li>
+                <a href="about.html"><i class="fa fa-info-circle" style="font-size:36px"></i></a>
+            </li>
+            <li>
+                <i id="sun-icon" class="fa fa-sun-o" style="font-size:36px; display: none;" onclick="toggleTheme()"></i>
+                <i id="moon-icon" class="fa fa-moon-o" style="font-size:36px;" onclick="toggleTheme()"></i>
+            </li>
+        </ul>
+    </nav>
+
+
+    <!-- Add this modal structure to your HTML -->
+    <button id="filter-button" class="theme-toggle">
+        Show Current Filters: (Date Range: N/A, Min Amount: N/A)
+    </button>
+    <div id="filterModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <h2>Apply Filters</h2>
+            <div class="filters">
+                <div>
+                    <label for="date-filter">Date Range:</label>
+                    From <input type="date" id="start-date">
+                    To <input type="date" id="end-date">
+                </div>
+                <div>
+                    <label for="amount-filter">Minimum Amount:</label>
+                    <input type="number" id="min-amount" placeholder="Enter amount">
+                </div>
+                <div>
+                    <button id="filter__submit" onclick="applyFilters()">Apply Filters</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+
+    <div id="chart-container">
+        <canvas id="walletChart"></canvas>
+    </div>
+
+    <hr style="border: 0.2rem solid black; width: 100%;">
+
+    <div id="pie_chart-container">
+        <canvas id="pieChart"></canvas>
+    </div>
+
 
     <!-- Google Tag Manager -->
     <script>(function (w, d, s, l, i) {
@@ -52,6 +355,272 @@
         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
+
+
+
+
+    <script>
+        let chartInstance = null;
+        let pieChartInstance = null;
+        let transactions = [];
+        let walletAddress = "";
+        const sunIcon = document.getElementById("sun-icon");
+        const moonIcon = document.getElementById("moon-icon");
+
+        let currentTheme = localStorage.getItem("theme") || "light";
+
+        // Set the initial theme and icons
+        document.body.setAttribute("data-theme", currentTheme);
+        if (currentTheme === "dark") {
+            sunIcon.style.display = "block";
+            moonIcon.style.display = "none";
+        } else {
+            sunIcon.style.display = "none";
+            moonIcon.style.display = "block";
+        }
+
+        function toggleTheme() {
+            // Toggle the theme
+            currentTheme = currentTheme === "dark" ? "light" : "dark";
+            document.body.setAttribute("data-theme", currentTheme);
+
+            // Toggle the icons
+            if (currentTheme === "dark") {
+                sunIcon.style.display = "block";
+                moonIcon.style.display = "none";
+            } else {
+                sunIcon.style.display = "none";
+                moonIcon.style.display = "block";
+            }
+
+            // Save the theme in localStorage
+            localStorage.setItem("theme", currentTheme);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            walletAddress = sessionStorage.getItem("walletAddress");
+            if (walletAddress) {
+                console.log('Wallet Address:', walletAddress);
+                fetchWalletData(walletAddress);
+
+                // Update the header with the wallet address
+                const header = document.querySelector('header');
+                if (!document.querySelector('#wallet-label')) {
+                    const walletLabel = document.createElement("p");
+                    walletLabel.id = "wallet-label";
+                    walletLabel.textContent = `Wallet Address: ${walletAddress}`;
+                    walletLabel.style.fontSize = 'large';
+                    walletLabel.style.marginLeft = '20px';
+                    walletLabel.style.color = "white";
+                    header.appendChild(walletLabel);
+                }
+            }
+        });
+
+
+
+        async function fetchWalletData(address) {
+            try {
+                walletAddress = address;
+                const balanceUrl = `https://api.xrpscan.com/api/v1/account/${address}`;
+                const transactionsUrl = `https://api.xrpscan.com/api/v1/account/${address}/transactions`;
+
+                const [balanceResponse, transactionsResponse] = await Promise.all([
+                    fetch(balanceUrl),
+                    fetch(transactionsUrl)
+                ]);
+
+                if (!balanceResponse.ok || !transactionsResponse.ok) {
+                    throw new Error("Failed to fetch wallet transactions or balance.");
+                }
+                console.log(balanceUrl);
+                const balanceData = await balanceResponse.json();
+
+                if (balanceData && typeof balanceData.xrpBalance === 'string') {
+                    const balance = parseFloat(balanceData.xrpBalance).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    });
+                    document.getElementById("wallet-balance").textContent = `Wallet Balance: ${balance} XRP`;
+                    console.log("Wallet Balance:", balance);
+                } else if (balanceData && typeof balanceData.Balance === 'string') {
+                    const balance = (parseFloat(balanceData.Balance) / 1000000).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    });
+                    document.getElementById("wallet-balance").textContent = `Wallet Balance: ${balance} XRP`;
+                    console.log("Wallet Balance (from drops):", balance);
+                } else {
+                    document.getElementById("wallet-balance").textContent = "Wallet Balance: N/A";
+                    console.warn("Balance data is invalid or missing.");
+                }
+
+                const transactionsData = await transactionsResponse.json();
+                transactions = transactionsData.transactions || [];
+                tableData = transactions;
+                renderPieChart(transactions)
+                renderChart(transactions);
+                // renderTable(transactions);
+            } catch (error) {
+                console.error("Error fetching wallet data:", error);
+                alert("Failed to load wallet data.");
+            }
+        }
+
+
+        function renderChart(data) {
+            const canvas = document.getElementById("walletChart");
+            // Check if canvas exists
+            if (!canvas) {
+                console.error("Canvas element 'walletChart' not found!");
+                return;
+            }
+
+            const ctx = canvas.getContext("2d");
+
+            // Destroy previous chart instance if it exists
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const groupedData = {};
+            data.forEach(transaction => {
+                const date = formatDate(transaction.date).split(" ")[0];
+                if (!groupedData[date]) {
+                    groupedData[date] = { in: 0, out: 0 };
+                }
+                if (transaction.Destination === walletAddress) {
+                    groupedData[date].in += transaction.Amount.value / 1000000;
+                } else {
+                    groupedData[date].out += transaction.Amount.value / 1000000;
+                }
+            });
+
+            const labels = Object.keys(groupedData).sort((a, b) => {
+                const [dayA, monthA, yearA] = a.split('/');
+                const [dayB, monthB, yearB] = b.split('/');
+                return new Date(`${yearA}-${monthA}-${dayA}`) - new Date(`${yearB}-${monthB}-${dayB}`);
+            });
+
+            const inValues = labels.map(date => groupedData[date].in);
+            const outValues = labels.map(date => groupedData[date].out);
+
+            // Create new chart
+            window.chartInstance = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: "IN Transactions",
+                            data: inValues,
+                            backgroundColor: "rgba(75, 192, 192, 0.5)",
+                            borderColor: "rgba(75, 192, 192, 1)",
+                        },
+                        {
+                            label: "OUT Transactions",
+                            data: outValues,
+                            backgroundColor: "rgba(255, 99, 132, 0.5)",
+                            borderColor: "rgba(255, 99, 132, 1)",
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: "Date" },
+                        },
+                        y: {
+                            title: { display: true, text: "Amount (XRP)" },
+                            beginAtZero: true,
+                        }
+                    }
+                }
+            });
+        }
+
+
+
+
+        function renderPieChart(transactions) {
+            if (!transactions || transactions.length === 0) {
+                console.warn("No transactions available for pie chart.");
+                return;
+            }
+
+            // Summarize all transactions into IN and OUT totals
+            let totalIn = 0;
+            let totalOut = 0;
+
+            transactions.forEach(transaction => {
+                if (transaction.Destination === walletAddress) {
+                    totalIn += transaction.Amount.value / 1000000;
+                } else {
+                    totalOut += transaction.Amount.value / 1000000;
+                }
+            });
+
+            console.log("IN Transactions:", totalIn, "OUT Transactions:", totalOut);
+
+            const ctx = document.getElementById("pieChart")?.getContext("2d");
+            if (!ctx) {
+                console.error("Pie Chart canvas not found!");
+                return;
+            }
+
+            const transactionData = {
+                labels: ["IN Transactions", "OUT Transactions"],
+                datasets: [{
+                    data: [totalIn, totalOut],
+                    backgroundColor: ["rgba(75, 192, 192, 0.5)", "rgba(255, 99, 132, 0.5)"],
+                    borderColor: ["rgba(75, 192, 192, 1)", "rgba(255, 99, 132, 1)"],
+                    borderWidth: 1
+                }]
+            };
+
+            if (window.pieChartInstance) {
+                window.pieChartInstance.destroy();
+            }
+
+            window.pieChartInstance = new Chart(ctx, {
+                type: "pie",
+                data: transactionData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: "top" }
+                    }
+                }
+            });
+        }
+
+
+
+
+        function applyFilters() {
+            const startDate = document.getElementById("start-date").value;
+            const endDate = document.getElementById("end-date").value;
+            const minAmount = document.getElementById("min-amount").value;
+
+            const filteredData = tableData.filter(transaction => {
+                const transactionDate = new Date(transaction.date);
+                return (!startDate || transactionDate >= new Date(startDate)) &&
+                    (!endDate || transactionDate <= new Date(endDate)) &&
+                    (!minAmount || transaction.Amount.value / 1000000 >= parseFloat(minAmount));
+            });
+
+            renderTable(filteredData);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
+        }
+
+        console.log(sessionStorage.getItem("walletAddress"));
+
+    </script>
 </body>
 
 </html>

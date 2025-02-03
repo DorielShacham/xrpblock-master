@@ -137,7 +137,6 @@
             xumm.user.account.then(account => {
                 const walletAddress = account;
                 console.log(walletAddress);
-
                 document.getElementById('accountaddress').innerText = walletAddress;
                 sessionStorage.setItem('walletId', account);
             });
