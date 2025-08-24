@@ -5,66 +5,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon/favicon-32x32.png">
-    <title>XRPBlock</title>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HM3N402YPM"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-HM3N402YPM');
-    </script>
+    <title>XRPBlock Loading</title>
     <style>
         body {
+            margin: 0;
+            overflow: hidden;
+            height: 100vh;
+            background-color: #000;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f3f3f3;
-            font-family: Arial, sans-serif;
         }
 
-        .loader {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
 </head>
 
 <body>
-    <div class="loader">
-    </div>
+    <canvas id="rippleLoader"></canvas>
+
     <script>
-        // Extract the wallet address from the query parameter
-        console.log(sessionStorage.getItem("walletAddress"));
-        const storedWallet = sessionStorage.getItem("walletAddress");
-        if (storedWallet) {
-            console.log("Stored Wallet Address:", storedWallet);
-        } else {
-            console.log("No wallet address found.");
+        const canvas = document.getElementById('rippleLoader');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        class Ripple {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 0;
+                this.alpha = 1;
+                this.speed = 2;
+                this.lineWidth = 2;
+            }
+            update() {
+                this.radius += this.speed;
+                this.alpha -= 0.02;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 170, 255, ${this.alpha})`;
+                ctx.lineWidth = this.lineWidth;
+                ctx.stroke();
+            }
         }
+
+        const ripples = [];
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            ripples.forEach((r, i) => {
+                r.update();
+                r.draw();
+                if (r.alpha <= 0) ripples.splice(i, 1);
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Create a ripple every 300ms
+        setInterval(() => {
+            ripples.push(new Ripple(centerX, centerY));
+        }, 300);
+
+        // Handle wallet redirection
         const params = new URLSearchParams(window.location.search);
-        const walletAddress = params.get("q");
-    
+        const walletAddress = params.get("q") || sessionStorage.getItem("walletAddress");
+
         if (walletAddress) {
             setTimeout(() => {
                 window.location.href = `dashboard.html?q=${encodeURIComponent(walletAddress)}`;
-            }, 2000); // Keep the loader for 2 seconds
+            }, 2000); // keep loader for 2 seconds
         } else {
             alert("No wallet address provided.");
             window.location.href = "index.html";

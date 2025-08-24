@@ -4,684 +4,518 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="favicon/favicon-32x32.png">
     <title>XRPBlock Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HM3N402YPM"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-HM3N402YPM');
-    </script>
-
-    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1723436791336055"
-        crossorigin="anonymous"></script> -->
-    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1723436791336055"
-        crossorigin="anonymous"></script> -->
-    <!-- Horizontal-xrpblock -->
-    <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-1723436791336055" data-ad-slot="1842390278"
-        data-ad-format="auto" data-full-width-responsive="true"></ins> -->
-    <!-- <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script> -->
-
     <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://unpkg.com/xrpl@2.11.0/build/xrpl-latest-min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --table-border-color: #ccc;
-            --table-header-bg: #f4f4f4;
-            --link-color: #007bff;
-            --hover-link-color: #0056b3;
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #1e1e2f;
-            --text-color: #e4e4e4;
-            --table-border-color: #444;
-            --table-header-bg: #333;
-            --link-color: #4dabf7;
-            --hover-link-color: #2196f3;
-        }
-
-        * {
+        body {
+            margin: 0;
             font-family: 'Markazi Text', serif;
+            background: #000;
+            overflow: hidden;
             color: white;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            padding: 0;
-            width: 100%;
-            margin-left: 5rem;
-            overflow-y: auto;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-wrap: wrap;
-            flex-direction: column
+        canvas#rippleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
         }
 
-        header {
-            position: absolute;
-            top: 0;
-            width: 100%;
+        .dashboard {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
             align-items: center;
-            padding: 10px;
-            background-color: #1e3a58;
-            border-bottom: 1px solid var(--table-border-color);
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
             margin-bottom: 20px;
-            justify-content: space-around;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00aaff;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 10px;
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            justify-content: space-between;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+
+        .compare-card {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 15px;
+            flex-wrap: nowrap;
+            /* keep horizontal */
+            padding: 15px 20px;
+            overflow: hidden;
+            /* prevent overflow outside */
+        }
+
+        .compare-card input {
+            flex: 2 1 auto;
+            min-width: 0;
+            /* allow shrinking */
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #00aaff;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+
+        .compare-card button {
+            flex: 0 0 auto;
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            background: #00aaff;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .compare-card button:hover {
+            background: #00ffcc;
+            color: #000;
+        }
+
+        .compare-card #compare-wallet-result {
+            flex: 2 1 auto;
+            /* allow shrinking/growing */
+            min-width: 0;
+            /* allow shrinking to fit card */
+            color: #ffcc00;
+            font-weight: bold;
+            overflow-wrap: break-word;
+            /* wrap long text inside */
+        }
+
+
+        .stat-card {
+            flex: 1 1 200px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            font-size: 1.8rem;
+            color: #00aaff;
+            border: 1px solid rgba(0, 170, 255, 0.5);
+            padding: 15px;
+        }
+
+        #compare-wallet-btn:hover {
+            background: #00ffcc;
+            color: #000;
+        }
+
+
+        #xrp-price {
+            font-size: 2rem;
+            color: #00aaff;
+            font-weight: bold;
+        }
+
+        #wallet-balance {
+            font-weight: bold;
+            color: #00aaff;
+        }
+
+        #xrpChart {
+            width: 100%;
+            height: 20rem;
+            margin: 20px auto;
+        }
+
+        #rlusdChart {
+            width: 100%;
+            height: 20rem;
+            margin: 20px auto;
         }
 
         #wallet-label {
-            font-size: 1rem;
-            font-weight: bold;
-            color: var(--text-color);
-            margin-left: 20px;
-        }
-
-
-        /* Sidebar Navigation */
-        .sidebar-navigation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            width: 5rem;
-            background-color: #1e3a58;
-            color: white;
-            overflow: hidden;
-        }
-
-        .sidebar-navigation ul {
-            width: 100%;
-            padding: 0;
-            margin: 0;
-            list-style: none;
-            position: absolute;
-            top: 0;
-        }
-
-        .sidebar-navigation ul li {
-            position: relative;
-            padding: 20px 0;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .sidebar-navigation ul li a,
-        .sidebar-navigation ul li button {
-            display: block;
-            font-size: 16px;
-            color: white;
-            text-decoration: none;
-            margin-top: 5px;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-
-        .sidebar-navigation ul li i {
-            font-size: 24px;
-            color: white;
-            transition: color 0.3s ease;
-        }
-
-        .sidebar-navigation ul li:hover {
-            background-color: #22252E;
-        }
-
-        .sidebar-navigation ul li:hover i {
-            color: #3052ff;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
         }
 
 
 
-        /* Active Link */
-        .sidebar-navigation ul li.active {
-            background-color: #22252E;
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .stat-card {
+                font-size: 1.5rem;
+                padding: 10px;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .compare-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .compare-card input,
+            .compare-card #compare-wallet-result {
+                min-width: 100%;
+            }
+
+            #xrpChart {
+                height: 8rem;
+                width: 80%;
+            }
+
+            #rlusdChart {
+                height: 8rem;
+                width: 80%;
+            }
+
+            #wallet-label {
+                font-size: 1.5rem;
+            }
+
+            #wallet-balance {
+                font-size: 1.5rem;
+            }
         }
 
-        .sidebar-navigation ul li.active i {
-            color: #3052ff;
-        }
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
 
-        .sidebar-navigation ul li.active a {
-            color: #3052ff;
-        }
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
 
+            .stat-card {
+                width: 100%;
+                font-size: 1.3rem;
+            }
 
-        /* Theme Toggle Button */
-        .theme-toggle {
-            cursor: pointer;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: var(--link-color);
-            color: #fff;
-            font-size: 1.2rem;
-            margin: 0 auto;
-            display: block;
-        }
+            #xrpChart {
+                height: 250px;
+            }
 
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0, 0, 0);
-            background-color: rgba(0, 0, 0, 0.4);
-            padding-top: 60px;
-        }
+            #rlusdChart {
+                height: 250px;
+            }
 
-        .modal-content {
-            background-color: var(--bg-color);
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid var(--table-border-color);
-            width: 80%;
-            max-width: 500px;
-        }
-
-        .close-btn {
-            color: var(--text-color);
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close-btn:hover,
-        .close-btn:focus {
-            color: var(--link-color);
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        /* Adjust filter layout within the modal */
-        .filters {
-            display: flex;
-            flex-direction: column;
-            align-content: flex-start;
-            flex-wrap: wrap;
-            align-items: stretch;
-        }
-
-        .filters div {
-            margin-bottom: 15px;
-        }
-
-        .filters select,
-        .filters input {
-            padding: 8px;
-            font-size: 16px;
-        }
-
-        #filter-button {
-            width: 15rem;
-            height: 3rem;
-            margin-top: 5rem;
-            font-size: medium;
-        }
-
-        #filter__submit {
-            cursor: pointer;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            background-color: var(--link-color);
-            color: #fff;
-            font-size: 14px;
-        }
-
-        #chart-container {
-            width: 80%;
-            margin: 20px auto;
-            margin-top: 5rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th,
-        table td {
-            border: 1px solid var(--table-border-color);
-            padding: 10px;
-            text-align: center;
-        }
-
-        table th {
-            background-color: var(--table-header-bg);
-        }
-
-        table td a {
-            color: var(--link-color);
-            text-decoration: none;
-        }
-
-        table td a:hover {
-            text-decoration: underline;
-        }
-
-        .in-transaction td:nth-child(4) {
-            background-color: rgba(75, 192, 192, 0.5);
-        }
-
-        .out-transaction td:nth-child(4) {
-            background-color: rgba(255, 99, 132, 0.5);
-        }
-
-        tr:hover {
-            border: 1.5px dotted black;
         }
     </style>
 </head>
 
 <body>
-    <header>
-        <p id="wallet-balance" style="font-size: large; margin-left: 20px;"></p>
-    </header>
 
-    <nav class="sidebar-navigation">
-        <ul>
-            <li class="active">
-                <a href="index.html"><i class="fa fa-share-alt"></i></a>
-            </li>
-            <li>
-                <a href="charts.html"><i class="fa fa-bar-chart" style="font-size:36px"></i></a>
-            </li>
-            <li>
-                <a href="tables.html"><i class="fa fa-table" style="font-size:36px;"></i></a>
-            </li>
-            <li>
-                <a href="about.html"><i class="fa fa-info-circle" style="font-size:36px"></i></a>
-            </li>
-            <li>
-                <i id="sun-icon" class="fa fa-sun-o" style="font-size:36px; display: none;" onclick="toggleTheme()"></i>
-                <i id="moon-icon" class="fa fa-moon-o" style="font-size:36px;" onclick="toggleTheme()"></i>
-            </li>
+    <canvas id="rippleCanvas"></canvas>
 
-        </ul>
-    </nav>
+    <div class="dashboard">
+        <div class="header">
+            <h1>💠 XRPBlock Dashboard</h1>
+        </div>
 
-    <!-- Add this modal structure to your HTML -->
-    <button id="filter-button" class="theme-toggle">
-        Show Current Filters: (Date Range: N/A, Min Amount: N/A)
-    </button>
-    <div id="filterModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="close-modal">&times;</span>
-            <h2>Apply Filters</h2>
-            <div class="filters">
-                <div>
-                    <label for="date-filter">Date Range:</label>
-                    From <input type="date" id="start-date">
-                    To <input type="date" id="end-date">
-                </div>
-                <div>
-                    <label for="amount-filter">Minimum Amount:</label>
-                    <input type="number" id="min-amount" placeholder="Enter amount">
-                </div>
-                <div>
-                    <button id="filter__submit" onclick="applyFilters()">Apply Filters</button>
-                </div>
+        <div class="stats">
+            <div class="card stat-card">
+                <div id="wallet-label">Wallet: Loading...</div>
+                <div id="wallet-balance">Balance: Loading...</div>
+                <div id="wallet-value-usd" style="color:#ffcc00; font-weight:bold;">Value: Loading...</div>
+            </div>
+            <div class="card stat-card">
+                <div>Today's Price</div>
+                <div id="xrp-price" style="font-size:1.5rem;">Loading...</div>
             </div>
         </div>
+
+        <div class="card stat-card compare-card">
+            <div style="font-weight:bold; min-width:150px;">Compare Another Wallet:</div>
+            <input type="text" id="compare-wallet-input" placeholder="Enter wallet address">
+            <button id="compare-wallet-btn">Compare</button>
+            <div id="compare-wallet-result"></div>
+        </div>
+
+
+
+        <div class="charts" style="display: flex; height:20rem; width: 100%; ">
+            <div class="card">
+                <canvas id="xrpChart"></canvas>
+            </div>
+            <div class="card">
+                <canvas id="rlusdChart"></canvas>
+            </div>
+        </div>
+
     </div>
-
-    <div id="chart-container">
-        <canvas id="walletChart"></canvas>
-    </div>
-
-
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>From Account</th>
-                <th>To Account</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody id="transaction-table-body">
-            <!-- Transactions will be dynamically added here -->
-        </tbody>
-    </table>
 
     <script>
-        let chartInstance = null;
-        let transactions = [];
-        let walletAddress = "";
-        let tableData = [];
-        const sunIcon = document.getElementById("sun-icon");
-        const moonIcon = document.getElementById("moon-icon");
+        /* Ripple Background */
+        const canvas = document.getElementById('rippleCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        const ripples = [];
 
-        let currentTheme = localStorage.getItem("theme") || "light";
-
-        // Set the initial theme and icons
-        document.body.setAttribute("data-theme", currentTheme);
-        if (currentTheme === "dark") {
-            sunIcon.style.display = "block";
-            moonIcon.style.display = "none";
-        } else {
-            sunIcon.style.display = "none";
-            moonIcon.style.display = "block";
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
         }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-        function toggleTheme() {
-            // Toggle the theme
-            currentTheme = currentTheme === "dark" ? "light" : "dark";
-            document.body.setAttribute("data-theme", currentTheme);
-
-            // Toggle the icons
-            if (currentTheme === "dark") {
-                sunIcon.style.display = "block";
-                moonIcon.style.display = "none";
-            } else {
-                sunIcon.style.display = "none";
-                moonIcon.style.display = "block";
+        class Ripple {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 0;
+                this.alpha = 1;
+                this.speed = 1.5 + Math.random() * 1.5;
+                this.lineWidth = 1 + Math.random() * 2;
             }
-
-            // Save the theme in localStorage
-            localStorage.setItem("theme", currentTheme);
+            update() {
+                this.radius += this.speed;
+                this.alpha -= 0.003;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 170, 255, ${this.alpha})`;
+                ctx.lineWidth = this.lineWidth;
+                ctx.stroke();
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            walletAddress = sessionStorage.getItem("walletAddress");
-            if (walletAddress) {
-                console.log('Wallet Address:', walletAddress);
-                fetchWalletData(walletAddress);
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            ripples.forEach((r, i) => {
+                r.update();
+                r.draw();
+                if (r.alpha <= 0) ripples.splice(i, 1);
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
 
-                // Update the header with the wallet address
-                const header = document.querySelector('header');
-                if (!document.querySelector('#wallet-label')) {
-                    const walletLabel = document.createElement("p");
-                    walletLabel.id = "wallet-label";
-                    walletLabel.textContent = `Wallet Address: ${walletAddress}`;
-                    walletLabel.style.fontSize = 'large';
-                    walletLabel.style.marginLeft = '20px';
-                    walletLabel.style.color = 'white';
-                    header.appendChild(walletLabel);
+        // Random and interactive ripples
+        setInterval(() => {
+            const count = 1 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < count; i++) {
+                ripples.push(new Ripple(Math.random() * width, Math.random() * height));
+            }
+        }, 300);
+
+        canvas.addEventListener('mousemove', e => ripples.push(new Ripple(e.clientX, e.clientY)));
+        canvas.addEventListener('click', e => ripples.push(new Ripple(e.clientX, e.clientY)));
+
+        /* Wallet */
+        function handleQueryParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const walletParam = urlParams.get('wallet') || urlParams.get('q');
+
+            if (walletParam) {
+                sessionStorage.setItem('walletAddress', walletParam);
+                document.getElementById('wallet-label').innerText = `Wallet: ${walletParam}`;
+                fetchWalletData(walletParam);
+            } else {
+                document.getElementById('wallet-balance').innerText = 'No wallet address provided';
+            }
+        }
+
+
+        let currentXRPPrice = 0;
+        let currentWalletBalance = 0;
+
+        // XRPL WebSocket balance fetcher
+        async function getAccountBalance(address) {
+            try {
+                const client = new xrpl.Client("wss://xrplcluster.com/");
+                await client.connect();
+                const response = await client.request({
+                    "command": "account_info",
+                    "account": address,
+                    "ledger_index": "validated"
+                });
+                await client.disconnect();
+                const balanceDrops = response.result.account_data.Balance;
+                return parseFloat(xrpl.dropsToXrp(balanceDrops));
+            } catch (error) {
+                console.error(error);
+                return null;
+            }
+        }
+
+        // Replace fetchWalletData to use XRPL WebSocket
+        async function fetchWalletData(address) {
+            try {
+                const balance = await getAccountBalance(address);
+                if (balance !== null) {
+                    currentWalletBalance = balance;
+                    document.getElementById("wallet-balance").textContent = `${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })} XRP`;
+                    updateWalletUSDValue();
+                } else {
+                    document.getElementById("wallet-balance").textContent = "Error fetching balance";
                 }
+            } catch (err) {
+                console.error(err);
+                document.getElementById("wallet-balance").textContent = "Error fetching balance";
+            }
+        }
+
+        /* XRP Chart */
+        async function fetchXRPPriceChart() {
+            try {
+                const response = await fetch("https://api.coingecko.com/api/v3/coins/ripple/market_chart?vs_currency=usd&days=1");
+                const data = await response.json();
+                const prices = data.prices.map(p => ({ time: new Date(p[0]).toLocaleTimeString(), price: p[1] }));
+
+                const latestPrice = prices[prices.length - 1].price;
+                currentXRPPrice = latestPrice; // store price
+                document.getElementById('xrp-price').textContent = `$${latestPrice.toFixed(4)}`;
+                updateWalletUSDValue(); // calculate USD after price is fetched
+
+                document.getElementById('xrp-price').textContent = `$${prices[prices.length - 1].price.toFixed(4)}`;
+                const ctxChart = document.getElementById('xrpChart').getContext('2d');
+                new Chart(ctxChart, {
+                    type: 'line',
+                    data: {
+                        labels: prices.map(p => p.time),
+                        datasets: [{
+                            label: 'XRP Price (USD)',
+                            data: prices.map(p => p.price),
+                            borderColor: '#00aaff',
+                            backgroundColor: 'rgba(0,170,255,0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { ticks: { color: '#fff' } },
+                            y: { ticks: { color: '#fff' } }
+                        },
+                        plugins: { legend: { labels: { color: '#fff' } } }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Failed to fetch XRP chart:", error);
+            }
+        }
+
+
+        /* Fetch RLUSD Price Chart */
+        async function fetchRLUSDPriceChart() {
+            try {
+                const response = await fetch("https://api.coingecko.com/api/v3/coins/ripple-usd/market_chart?vs_currency=usd&days=1");
+                const data = await response.json();
+                const prices = data.prices.map(p => ({ time: new Date(p[0]).toLocaleTimeString(), price: p[1] }));
+
+                const ctxChart = document.getElementById('rlusdChart').getContext('2d');
+                new Chart(ctxChart, {
+                    type: 'line',
+                    data: {
+                        labels: prices.map(p => p.time),
+                        datasets: [{
+                            label: 'RLUSD Price (USD)',
+                            data: prices.map(p => p.price),
+                            borderColor: '#ffcc00',
+                            backgroundColor: 'rgba(255,204,0,0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { ticks: { color: '#fff' } },
+                            y: { ticks: { color: '#fff' } }
+                        },
+                        plugins: { legend: { labels: { color: '#fff' } } }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Failed to fetch RLUSD chart:", error);
+            }
+        }
+
+
+        function updateWalletUSDValue() {
+            if (currentXRPPrice > 0 && currentWalletBalance > 0) {
+                const usdValue = currentWalletBalance * currentXRPPrice;
+                document.getElementById("wallet-value-usd").textContent = `Value: $${usdValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            }
+        }
+
+        // compare-wallet-btn event to use XRPL WebSocket
+        document.getElementById('compare-wallet-btn').addEventListener('click', async () => {
+            const compareAddress = document.getElementById('compare-wallet-input').value.trim();
+            if (!compareAddress) return alert("Please enter a wallet address to compare.");
+
+            const originalAddress = sessionStorage.getItem('walletAddress');
+            if (!originalAddress) return alert("No wallet stored in session to compare.");
+
+            try {
+                const [originalBalance, compareBalance] = await Promise.all([
+                    getAccountBalance(originalAddress),
+                    getAccountBalance(compareAddress)
+                ]);
+
+                if (originalBalance === null || compareBalance === null) {
+                    document.getElementById('compare-wallet-result').innerText = "Error fetching one or both balances.";
+                    return;
+                }
+
+                let comparisonText = `Wallet ${compareAddress} has ${compareBalance.toLocaleString()} XRP.\n`;
+                if (compareBalance > originalBalance) {
+                    comparisonText += "✅ This wallet has more XRP than your original wallet.";
+                } else if (compareBalance < originalBalance) {
+                    comparisonText += "⚠️ This wallet has less XRP than your original wallet.";
+                } else {
+                    comparisonText += "⚖️ Both wallets have the same XRP balance.";
+                }
+
+                document.getElementById('compare-wallet-result').innerText = comparisonText;
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('compare-wallet-result').innerText = "Failed to fetch wallet balances. Make sure the addresses are correct.";
             }
         });
 
 
-        
-         function handleQueryParameters() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const filterParam = urlParams.get('filter');
-            const walletParam = urlParams.get('wallet');
+        handleQueryParameters();
+        fetchWalletData(sessionStorage.getItem('walletAddress') || '');
+        fetchXRPPriceChart();
+        fetchRLUSDPriceChart();
 
-            console.log("Filter Param:", filterParam);
-            console.log("Wallet Param:", walletParam);
-
-            if (walletParam) {
-                sessionStorage.setItem('walletAddress', walletParam); // Ensure it's saved for future access
-                document.getElementById('wallet-balance').innerText = `Wallet: ${walletParam}`;
-            } else {
-                document.getElementById('wallet-balance').innerText = 'No wallet address provided';
-            }
-
-            if (filterParam) {
-                switch (filterParam.toLowerCase()) {
-                    case 'transactions':
-                        document.getElementById('chart-container').innerHTML = '<p>Displaying Transactions Data...</p>';
-                        break;
-                    case 'charts':
-                        document.getElementById('chart-container').innerHTML = `<canvas id="walletChart"></canvas>`;
-                        break;
-                    case 'stats':
-                        document.getElementById('chart-container').innerHTML = '<p>Displaying Stats...</p>';
-                        break;
-                    default:
-                        document.getElementById('chart-container').innerHTML = '<p>No specific filter applied.</p>';
-                }
-            } else {
-                document.getElementById('chart-container').innerHTML = '<p>Welcome to the Dashboard!</p>';
-            }
-        }
-
-        async function fetchWalletData(address) {
-            try {
-                walletAddress = address;
-                const balanceUrl = `https://api.xrpscan.com/api/v1/account/${address}`;
-                const transactionsUrl = `https://api.xrpscan.com/api/v1/account/${address}/transactions`;
-
-                const [balanceResponse, transactionsResponse] = await Promise.all([
-                    fetch(balanceUrl),
-                    fetch(transactionsUrl)
-                ]);
-
-                if (!balanceResponse.ok || !transactionsResponse.ok) {
-                    throw new Error("Failed to fetch wallet transactions or balance.");
-                }
-                console.log(balanceUrl);
-                const balanceData = await balanceResponse.json();
-
-                if (balanceData && typeof balanceData.xrpBalance === 'string') {
-                    const balance = parseFloat(balanceData.xrpBalance).toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    });
-                    document.getElementById("wallet-balance").textContent = `Wallet Balance: ${balance} XRP`;
-                    console.log("Wallet Balance:", balance);
-                } else if (balanceData && typeof balanceData.Balance === 'string') {
-                    const balance = (parseFloat(balanceData.Balance) / 1000000).toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    });
-                    document.getElementById("wallet-balance").textContent = `Wallet Balance: ${balance} XRP`;
-                    console.log("Wallet Balance (from drops):", balance);
-                } else {
-                    document.getElementById("wallet-balance").textContent = "Wallet Balance: N/A";
-                    console.warn("Balance data is invalid or missing.");
-                }
-
-                const transactionsData = await transactionsResponse.json();
-                transactions = transactionsData.transactions || [];
-                tableData = transactions;
-
-                renderChart(transactions);
-                renderTable(transactions);
-            } catch (error) {
-                console.error("Error fetching wallet data:", error);
-                alert("Failed to load wallet data.");
-            }
-        }
-
-
-        function renderChart(data) {
-            const canvas = document.getElementById("walletChart");
-            console.log("Rendering Chart...");
-            // Check if canvas exists
-            if (!canvas) {
-                console.error("Canvas element 'walletChart' not found!");
-                return;
-            }
-
-            const ctx = canvas.getContext("2d");
-
-            // Destroy previous chart instance if it exists
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            const groupedData = {};
-            data.forEach(transaction => {
-                const date = formatDate(transaction.date).split(" ")[0];
-                if (!groupedData[date]) {
-                    groupedData[date] = { in: 0, out: 0 };
-                }
-                if (transaction.Destination === walletAddress) {
-                    groupedData[date].in += transaction.Amount.value / 1000000;
-                } else {
-                    groupedData[date].out += transaction.Amount.value / 1000000;
-                }
-            });
-
-            const labels = Object.keys(groupedData).sort((a, b) => {
-                const [dayA, monthA, yearA] = a.split('/');
-                const [dayB, monthB, yearB] = b.split('/');
-                return new Date(`${yearA}-${monthA}-${dayA}`) - new Date(`${yearB}-${monthB}-${dayB}`);
-            });
-
-            const inValues = labels.map(date => groupedData[date].in);
-            const outValues = labels.map(date => groupedData[date].out);
-
-            // Create new chart
-            window.chartInstance = new Chart(ctx, {
-                type: "bar",
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            label: "IN Transactions",
-                            data: inValues,
-                            backgroundColor: "rgba(75, 192, 192, 0.5)",
-                            borderColor: "rgba(75, 192, 192, 1)",
-                        },
-                        {
-                            label: "OUT Transactions",
-                            data: outValues,
-                            backgroundColor: "rgba(255, 99, 132, 0.5)",
-                            borderColor: "rgba(255, 99, 132, 1)",
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: { display: true, text: "Date" },
-                        },
-                        y: {
-                            title: { display: true, text: "Amount (XRP)" },
-                            beginAtZero: true,
-                        }
-                    }
-                }
-            });
-        }
-
-
-
-        function renderTable(data) {
-    const tableBody = document.getElementById("transaction-table-body");
-    tableBody.innerHTML = "";
-
-    data.forEach(transaction => {
-        const fromAccount = transaction.Account || "N/A";
-        const toAccount = transaction.Destination || "N/A";
-        const amountValue = transaction.Amount?.value || transaction.Amount || 0;
-        const formattedAmount = `${(amountValue / 1000000).toFixed(6)} XRP`;
-        const date = formatDate(transaction.date || transaction.executed_time || "Unknown");
-
-        const row = document.createElement("tr");
-        row.className = toAccount === walletAddress ? "in-transaction" : "out-transaction";
-
-        const fromLink = document.createElement("a");
-        fromLink.href = `https://www.xrpblock.com/dashboard.html?q=${fromAccount}`;
-        fromLink.innerText = fromAccount;
-        fromLink.onclick = (e) => {
-            e.preventDefault();
-            // Update sessionStorage when the fromAccount link is clicked
-            sessionStorage.setItem('walletAddress', fromAccount);
-            // Update the URL with the clicked wallet address
-            window.location.href = `https://www.xrpblock.com/dashboard.html?q=${fromAccount}`;
-        };
-
-        const toLink = document.createElement("a");
-        toLink.href = `https://www.xrpblock.com/dashboard.html?q=${toAccount}`;
-        toLink.innerText = toAccount;
-        toLink.onclick = (e) => {
-            e.preventDefault();
-            // Update sessionStorage when the toAccount link is clicked
-            sessionStorage.setItem('walletAddress', toAccount);
-            // Update the URL with the clicked wallet address
-            window.location.href = `https://www.xrpblock.com/dashboard.html?q=${toAccount}`;
-        };
-
-        row.innerHTML = `
-            <td>${date}</td>
-            <td></td>
-            <td></td>
-            <td>${formattedAmount}</td>
-        `;
-
-        row.cells[1].appendChild(fromLink);
-        row.cells[2].appendChild(toLink);
-
-        tableBody.appendChild(row);
-    });
-}
-
-
-
-        function applyFilters() {
-            const startDate = document.getElementById("start-date").value;
-            const endDate = document.getElementById("end-date").value;
-            const minAmount = document.getElementById("min-amount").value;
-
-            const filteredData = tableData.filter(transaction => {
-                const transactionDate = new Date(transaction.date);
-                return (!startDate || transactionDate >= new Date(startDate)) &&
-                    (!endDate || transactionDate <= new Date(endDate)) &&
-                    (!minAmount || transaction.Amount.value / 1000000 >= parseFloat(minAmount));
-            });
-
-            renderTable(filteredData);
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
-        }
-
-        console.log(sessionStorage.getItem("walletAddress"));
-        // handleQueryParameters();
     </script>
-
-
-
-
-
-
-
-
-    <!-- Google Tag Manager -->
-    <script>(function (w, d, s, l, i) {
-            w[l] = w[l] || []; w[l].push({
-                'gtm.start':
-                    new Date().getTime(), event: 'gtm.js'
-            }); var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-WP6CPTJ7');</script>
-    <!-- End Google Tag Manager -->
 
 </body>
 
