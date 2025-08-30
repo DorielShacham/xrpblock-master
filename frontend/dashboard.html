@@ -6,6 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XRPBlock Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Tag Manager -->
+    <script>(function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-WP6CPTJ7');</script>
+    <!-- End Google Tag Manager -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HM3N402YPM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-HM3N402YPM');
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1723436791336055"
+        crossorigin="anonymous"></script>
     <script src="https://unpkg.com/xrpl@2.11.0/build/xrpl-latest-min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -247,6 +269,13 @@
                 <div id="wallet-label">Wallet: Loading...</div>
                 <div id="wallet-balance">Balance: Loading...</div>
                 <div id="wallet-value-usd" style="color:#ffcc00; font-weight:bold;">Value: Loading...</div>
+                <div style="margin-top:10px;">
+                    <label for="wallet-currency" style="color:#fff;">Show value in:</label>
+                    <select id="wallet-currency">
+                        <option value="usd" selected>USD</option>
+                        <option value="eur">EUR</option>
+                    </select>
+                </div>
             </div>
             <div class="card stat-card">
                 <div>Today's Price</div>
@@ -347,7 +376,8 @@
         }
 
 
-        let currentXRPPrice = 0;
+        let currentXRPPriceUSD = 0;
+        let currentXRPPriceEUR = 0;
         let currentWalletBalance = 0;
 
         // XRPL WebSocket balance fetcher
@@ -376,7 +406,7 @@
                 if (balance !== null) {
                     currentWalletBalance = balance;
                     document.getElementById("wallet-balance").textContent = `${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })} XRP`;
-                    updateWalletUSDValue();
+                    updateWalletValueDisplay();
                 } else {
                     document.getElementById("wallet-balance").textContent = "Error fetching balance";
                 }
@@ -386,27 +416,34 @@
             }
         }
 
-        /* XRP Chart */
+        // Fetch both USD and EUR prices
         async function fetchXRPPriceChart() {
             try {
-                const response = await fetch("https://api.coingecko.com/api/v3/coins/ripple/market_chart?vs_currency=usd&days=1");
-                const data = await response.json();
-                const prices = data.prices.map(p => ({ time: new Date(p[0]).toLocaleTimeString(), price: p[1] }));
+                // Fetch USD price chart
+                const usdResponse = await fetch("https://api.coingecko.com/api/v3/coins/ripple/market_chart?vs_currency=usd&days=1");
+                const usdData = await usdResponse.json();
+                const usdPrices = usdData.prices.map(p => ({ time: new Date(p[0]).toLocaleTimeString(), price: p[1] }));
+                currentXRPPriceUSD = usdPrices[usdPrices.length - 1].price;
 
-                const latestPrice = prices[prices.length - 1].price;
-                currentXRPPrice = latestPrice; // store price
-                document.getElementById('xrp-price').textContent = `$${latestPrice.toFixed(4)}`;
-                updateWalletUSDValue(); // calculate USD after price is fetched
+                // Fetch EUR price chart
+                const eurResponse = await fetch("https://api.coingecko.com/api/v3/coins/ripple/market_chart?vs_currency=eur&days=1");
+                const eurData = await eurResponse.json();
+                const eurPrices = eurData.prices.map(p => ({ time: new Date(p[0]).toLocaleTimeString(), price: p[1] }));
+                currentXRPPriceEUR = eurPrices[eurPrices.length - 1].price;
 
-                document.getElementById('xrp-price').textContent = `$${prices[prices.length - 1].price.toFixed(4)}`;
+                // Default to USD display
+                document.getElementById('xrp-price').textContent = `$${currentXRPPriceUSD.toFixed(4)}`;
+                updateWalletValueDisplay();
+
+                // Draw USD chart (keep as is)
                 const ctxChart = document.getElementById('xrpChart').getContext('2d');
                 new Chart(ctxChart, {
                     type: 'line',
                     data: {
-                        labels: prices.map(p => p.time),
+                        labels: usdPrices.map(p => p.time),
                         datasets: [{
                             label: 'XRP Price (USD)',
-                            data: prices.map(p => p.price),
+                            data: usdPrices.map(p => p.price),
                             borderColor: '#00aaff',
                             backgroundColor: 'rgba(0,170,255,0.1)',
                             fill: true,
@@ -428,11 +465,11 @@
             }
         }
 
-
-        /* Fetch RLUSD Price Chart */
+        // Fetch RLUSD price chart (using USDT as a placeholder)
         async function fetchRLUSDPriceChart() {
             try {
-                const response = await fetch("https://api.coingecko.com/api/v3/coins/ripple-usd/market_chart?vs_currency=usd&days=1");
+                // Example: Use Tether (USDT) as a stand-in for RLUSD
+                const response = await fetch("https://api.coingecko.com/api/v3/coins/tether/market_chart?vs_currency=usd&days=1");
                 const data = await response.json();
                 const prices = data.prices.map(p => ({ time: new Date(p[0]).toLocaleTimeString(), price: p[1] }));
 
@@ -459,19 +496,30 @@
                         plugins: { legend: { labels: { color: '#fff' } } }
                     }
                 });
-
             } catch (error) {
                 console.error("Failed to fetch RLUSD chart:", error);
             }
         }
 
-
-        function updateWalletUSDValue() {
-            if (currentXRPPrice > 0 && currentWalletBalance > 0) {
-                const usdValue = currentWalletBalance * currentXRPPrice;
-                document.getElementById("wallet-value-usd").textContent = `Value: $${usdValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        // Update wallet value display based on selected currency
+        function updateWalletValueDisplay() {
+            const currency = document.getElementById("wallet-currency")?.value || "usd";
+            let value = 0;
+            let symbol = "$";
+            if (currency === "usd") {
+                value = currentWalletBalance * currentXRPPriceUSD;
+                symbol = "$";
+                document.getElementById('xrp-price').textContent = `$${currentXRPPriceUSD.toFixed(4)}`;
+            } else {
+                value = currentWalletBalance * currentXRPPriceEUR;
+                symbol = "€";
+                document.getElementById('xrp-price').textContent = `€${currentXRPPriceEUR.toFixed(4)}`;
             }
+            document.getElementById("wallet-value-usd").textContent = `Value: ${symbol}${value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
         }
+
+        // Update event listeners
+        document.getElementById("wallet-currency").addEventListener("change", updateWalletValueDisplay);
 
         // compare-wallet-btn event to use XRPL WebSocket
         document.getElementById('compare-wallet-btn').addEventListener('click', async () => {

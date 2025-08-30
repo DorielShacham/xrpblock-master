@@ -2,6 +2,13 @@
   font-family: "Markazi Text", serif;
 }
 
+body, html {
+  height: auto;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto; /* allow vertical scroll */
+}
+
 #walletForm {
   position: relative;
   top: 0;
@@ -137,4 +144,24 @@
 
 #chartButtons button:hover {
   background-color: blue;
+}
+
+/* Responsive fix for charts */
+@media (max-width: 768px) {
+  .dashboard {
+    height: auto !important;
+    min-height: 100vh;
+    overflow-y: visible;
+  }
+  .charts {
+    flex-direction: column;
+    height: auto !important;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+  .charts .card {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
 }

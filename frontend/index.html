@@ -30,6 +30,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://xaman.app/assets/cdn/xumm.min.js"></script>
     <style>
         * {
             font-family: 'Markazi Text', serif;
@@ -75,7 +76,13 @@
         <input id="wallet__input" type="text" placeholder="Enter XRP wallet address" required>
         <br>
         <button id="wallet__btn" type="submit">Check Wallet</button>
+        <br>
+        <button type="button" id="xaman-login-btn"
+            style="margin-top:1rem;background:#3052ff;color:white;border-radius:6px;padding:10px 20px;cursor:pointer;">
+            Login with Xaman (Xumm)
+        </button>
     </form>
+    <div id="xaman-status" style="text-align:center;margin-top:10px;color:#3052ff;"></div>
 
     <script>
         document.getElementById("walletForm").addEventListener("submit", (e) => {
@@ -87,6 +94,46 @@
             } else {
                 alert("Please enter a valid XRP wallet address.");
             }
+        });
+    </script>
+
+
+
+    <script>
+        // Xaman (Xumm) integration
+        var xumm = new Xumm("bb92bf0f-5442-4498-a1f6-cdcbe058e825");
+
+        document.getElementById('xaman-login-btn').addEventListener('click', function () {
+            xumm.authorize();
+            document.getElementById('xaman-status').innerText = "Scan the QR code with your Xaman app...";
+        });
+
+        xumm.on("ready", async () => {
+            const storedWalletId = sessionStorage.getItem('walletId');
+            if (!storedWalletId) {
+                xumm.user.account.then(account => {
+                    document.getElementById('wallet__input').value = account;
+                    sessionStorage.setItem('walletId', account);
+                    document.getElementById('xaman-status').innerText = "Wallet connected!";
+                });
+            } else {
+                document.getElementById('wallet__input').value = storedWalletId;
+                document.getElementById('xaman-status').innerText = "Wallet connected!";
+            }
+        });
+
+        xumm.on("success", async () => {
+            xumm.user.account.then(account => {
+                document.getElementById('wallet__input').value = account;
+                sessionStorage.setItem('walletId', account);
+                document.getElementById('xaman-status').innerText = "Wallet connected!";
+            });
+        });
+
+        xumm.on("logout", async () => {
+            sessionStorage.removeItem('walletId');
+            document.getElementById('wallet__input').value = '';
+            document.getElementById('xaman-status').innerText = "Logged out.";
         });
     </script>
 
