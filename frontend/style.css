@@ -7,7 +7,7 @@ html {
   height: auto;
   min-height: 100vh;
   overflow-x: hidden;
-  overflow-y: auto; /* allow vertical scroll */
+  overflow-y: auto;
 }
 
 #walletForm {

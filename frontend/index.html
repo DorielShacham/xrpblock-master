@@ -13,7 +13,7 @@
                     new Date().getTime(), event: 'gtm.js'
             }); var f = d.getElementsByTagName(s)[0],
                 j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+                    'https://www.googletagmanager.com/gtag.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
         })(window, document, 'script', 'dataLayer', 'GTM-WP6CPTJ7');</script>
     <!-- End Google Tag Manager -->
     <!-- Google tag (gtag.js) -->
@@ -22,7 +22,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-HM3N402YPM');
     </script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1723436791336055"
@@ -30,7 +29,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://xaman.app/assets/cdn/xumm.min.js"></script>
+    <script src="https://xaman.app/assets/cdn/xumm.min.js" async defer></script>
     <style>
         * {
             font-family: 'Markazi Text', serif;
@@ -56,7 +55,7 @@
             Login with Xaman (Xumm)
         </button>
     </form>
-    <div id="xaman-status" style="text-align:center;margin-top:10px;color:#3052ff;"></div>
+    <div id="xaman-status" style="text-align:center;margin-top:10px;color:#3052ff;font-size:large;"></div>
 
     <script>
         document.getElementById("walletForm").addEventListener("submit", (e) => {
@@ -73,56 +72,82 @@
 
     <!-- Xaman (Xumm) integration -->
     <script>
-        var xumm = new Xumm("bb92bf0f-5442-4498-a1f6-cdcbe058e825");
-
-        xumm.on("ready", async () => {
-            const storedWalletId = sessionStorage.getItem('walletId');
-
-            if (!storedWalletId) {
-                // Only fetch and store the wallet address if it's not already stored
-                xumm.user.account.then(account => {
-                    document.getElementById('wallet__input').value = account;
-                    sessionStorage.setItem('walletId', account);
-                    sessionStorage.setItem('walletAddress', account);
-                    document.getElementById('xaman-status').innerText = "Wallet connected! Redirecting...";
-                    // Redirect to dashboard after a short delay
-                    setTimeout(() => {
-                        window.location.href = `dashboard.html?q=${encodeURIComponent(account)}`;
-                    }, 1500);
-                });
-            } else {
-                console.log("User already logged in with wallet ID:", storedWalletId);
-                // Render the already stored wallet ID
-                document.getElementById('wallet__input').value = storedWalletId;
-                document.getElementById('xaman-status').innerText = "Wallet connected!";
+        // Wait for Xumm SDK to load
+        function initXumm() {
+            if (typeof Xumm === 'undefined') {
+                console.error("Xumm SDK not loaded");
+                document.getElementById('xaman-status').innerText = "Xumm SDK failed to load. Try again.";
+                setTimeout(initXumm, 1000); // Retry after 1 second
+                return;
             }
-        });
 
-        xumm.on("success", async () => {
-            xumm.user.account.then(account => {
-                const walletAddress = account;
-                document.getElementById('wallet__input').value = walletAddress;
-                sessionStorage.setItem('walletId', account);
-                sessionStorage.setItem('walletAddress', account);
-                document.getElementById('xaman-status').innerText = "Wallet connected! Redirecting...";
-                // Redirect to dashboard after a short delay
-                setTimeout(() => {
-                    window.location.href = `dashboard.html?q=${encodeURIComponent(walletAddress)}`;
-                }, 1500);
+            var xumm = new Xumm("bb92bf0f-5442-4498-a1f6-cdcbe058e825");
+
+            xumm.on("ready", async () => {
+                console.log("Xumm ready");
+                const storedWalletId = sessionStorage.getItem('walletId');
+
+                if (!storedWalletId) {
+                    try {
+                        const account = await xumm.user.account;
+                        if (account) {
+                            document.getElementById('wallet__input').value = account;
+                            sessionStorage.setItem('walletId', account);
+                            sessionStorage.setItem('walletAddress', account);
+                            document.getElementById('xaman-status').innerText = "Wallet connected! Redirecting...";
+                            setTimeout(() => {
+                                window.location.href = `dashboard.html?q=${encodeURIComponent(account)}`;
+                            }, 1500);
+                        }
+                    } catch (error) {
+                        console.error("Error getting account:", error);
+                    }
+                } else {
+                    console.log("User already logged in with wallet ID:", storedWalletId);
+                    document.getElementById('wallet__input').value = storedWalletId;
+                    document.getElementById('xaman-status').innerText = "Wallet connected!";
+                }
             });
-        });
 
-        xumm.on("logout", async () => {
-            sessionStorage.removeItem('walletId');
-            sessionStorage.removeItem('walletAddress');
-            document.getElementById('wallet__input').value = '';
-            document.getElementById('xaman-status').innerText = "Logged out.";
-        });
+            xumm.on("success", async () => {
+                console.log("Xumm success");
+                try {
+                    const account = await xumm.user.account;
+                    if (account) {
+                        document.getElementById('wallet__input').value = account;
+                        sessionStorage.setItem('walletId', account);
+                        sessionStorage.setItem('walletAddress', account);
+                        document.getElementById('xaman-status').innerText = "Wallet connected! Redirecting...";
+                        setTimeout(() => {
+                            window.location.href = `dashboard.html?q=${encodeURIComponent(account)}`;
+                        }, 1500);
+                    }
+                } catch (error) {
+                    console.error("Error in success handler:", error);
+                }
+            });
 
-        document.getElementById('xaman-login-btn').addEventListener('click', function () {
-            xumm.authorize();
-            document.getElementById('xaman-status').innerText = "Scan the QR code with your Xaman app...";
-        });
+            xumm.on("logout", async () => {
+                console.log("Xumm logout");
+                sessionStorage.removeItem('walletId');
+                sessionStorage.removeItem('walletAddress');
+                document.getElementById('wallet__input').value = '';
+                document.getElementById('xaman-status').innerText = "Logged out.";
+            });
+
+            document.getElementById('xaman-login-btn').addEventListener('click', function () {
+                document.getElementById('xaman-status').innerText = "Opening Xaman...";
+                xumm.authorize();
+            });
+        }
+
+        // Initialize after DOM is ready and Xumm SDK is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initXumm);
+        } else {
+            // Wait a bit for Xumm SDK to load
+            setTimeout(initXumm, 500);
+        }
     </script>
 
 </body>
