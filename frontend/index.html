@@ -35,41 +35,15 @@
         * {
             font-family: 'Markazi Text', serif;
         }
-
-        #wallet__btn {
-            width: 25%;
-            height: 5%;
-            cursor: pointer;
-            width: 10rem;
-            background: #3052ff;
-            color: white;
-            border-radius: 6px;
-            margin-bottom: 50vh;
-            transition: 0.3s;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-
-        #wallet__btn:hover {
-            color: #3052ff;
-            background: #f3f5ff;
-            opacity: 0.9;
-        }
     </style>
 </head>
 
 <body>
 
-    <!-- Google Tag Manager -->
-    <script>(function (w, d, s, l, i) {
-            w[l] = w[l] || []; w[l].push({
-                'gtm.start':
-                    new Date().getTime(), event: 'gtm.js'
-            }); var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-WP6CPTJ7');</script>
-    <!-- End Google Tag Manager -->
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WP6CPTJ7" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
     <form id="walletForm">
         <label id="wallet__title" for="wallet__input">XRP Wallet Address:</label>
@@ -78,7 +52,7 @@
         <button id="wallet__btn" type="submit">Check Wallet</button>
         <br>
         <button type="button" id="xaman-login-btn"
-            style="margin-top:1rem;background:#3052ff;color:white;border-radius:6px;padding:10px 20px;cursor:pointer;">
+            style="margin-top:1rem;background:#3052ff;color:white;border-radius:6px;padding:10px 20px;cursor:pointer; font-size: x-large;">
             Login with Xaman (Xumm)
         </button>
     </form>
@@ -90,33 +64,35 @@
             const walletAddress = document.getElementById("wallet__input").value.trim();
             if (walletAddress) {
                 sessionStorage.setItem("walletAddress", walletAddress);
-                window.location.href = `loader.html?q=${encodeURIComponent(walletAddress)}`;
+                window.location.href = `dashboard.html?q=${encodeURIComponent(walletAddress)}`;
             } else {
                 alert("Please enter a valid XRP wallet address.");
             }
         });
     </script>
 
-
-
+    <!-- Xaman (Xumm) integration -->
     <script>
-        // Xaman (Xumm) integration
         var xumm = new Xumm("bb92bf0f-5442-4498-a1f6-cdcbe058e825");
-
-        document.getElementById('xaman-login-btn').addEventListener('click', function () {
-            xumm.authorize();
-            document.getElementById('xaman-status').innerText = "Scan the QR code with your Xaman app...";
-        });
 
         xumm.on("ready", async () => {
             const storedWalletId = sessionStorage.getItem('walletId');
+
             if (!storedWalletId) {
+                // Only fetch and store the wallet address if it's not already stored
                 xumm.user.account.then(account => {
                     document.getElementById('wallet__input').value = account;
                     sessionStorage.setItem('walletId', account);
-                    document.getElementById('xaman-status').innerText = "Wallet connected!";
+                    sessionStorage.setItem('walletAddress', account);
+                    document.getElementById('xaman-status').innerText = "Wallet connected! Redirecting...";
+                    // Redirect to dashboard after a short delay
+                    setTimeout(() => {
+                        window.location.href = `dashboard.html?q=${encodeURIComponent(account)}`;
+                    }, 1500);
                 });
             } else {
+                console.log("User already logged in with wallet ID:", storedWalletId);
+                // Render the already stored wallet ID
                 document.getElementById('wallet__input').value = storedWalletId;
                 document.getElementById('xaman-status').innerText = "Wallet connected!";
             }
@@ -124,19 +100,30 @@
 
         xumm.on("success", async () => {
             xumm.user.account.then(account => {
-                document.getElementById('wallet__input').value = account;
+                const walletAddress = account;
+                document.getElementById('wallet__input').value = walletAddress;
                 sessionStorage.setItem('walletId', account);
-                document.getElementById('xaman-status').innerText = "Wallet connected!";
+                sessionStorage.setItem('walletAddress', account);
+                document.getElementById('xaman-status').innerText = "Wallet connected! Redirecting...";
+                // Redirect to dashboard after a short delay
+                setTimeout(() => {
+                    window.location.href = `dashboard.html?q=${encodeURIComponent(walletAddress)}`;
+                }, 1500);
             });
         });
 
         xumm.on("logout", async () => {
             sessionStorage.removeItem('walletId');
+            sessionStorage.removeItem('walletAddress');
             document.getElementById('wallet__input').value = '';
             document.getElementById('xaman-status').innerText = "Logged out.";
         });
-    </script>
 
+        document.getElementById('xaman-login-btn').addEventListener('click', function () {
+            xumm.authorize();
+            document.getElementById('xaman-status').innerText = "Scan the QR code with your Xaman app...";
+        });
+    </script>
 
 </body>
 

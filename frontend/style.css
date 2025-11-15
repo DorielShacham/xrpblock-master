@@ -2,7 +2,8 @@
   font-family: "Markazi Text", serif;
 }
 
-body, html {
+body,
+html {
   height: auto;
   min-height: 100vh;
   overflow-x: hidden;
@@ -41,6 +42,7 @@ body, html {
   font-style: normal;
 }
 #wallet__btn {
+  font-size: x-large;
   width: 25%;
   height: 5%;
   cursor: pointer;
@@ -53,8 +55,9 @@ body, html {
 }
 
 #wallet__btn:hover {
-  background-color: #2196f3;
-  color: white;
+  color: #3052ff;
+  background: #f3f5ff;
+  opacity: 0.9;
 }
 
 #wallet__popup {
@@ -144,6 +147,31 @@ body, html {
 
 #chartButtons button:hover {
   background-color: blue;
+}
+
+/* Logout button styles */
+#logout-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+#logout-btn:hover {
+  background: #ff0000;
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+/* Make header position relative for logout button positioning */
+.header {
+  position: relative;
 }
 
 /* Responsive fix for charts */

@@ -1,4 +1,0 @@
-chest21
-helm18
-pants03
-gloves01

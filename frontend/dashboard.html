@@ -262,6 +262,7 @@
     <div class="dashboard">
         <div class="header">
             <h1>💠 XRPBlock Dashboard</h1>
+            <button id="logout-btn" style="position: absolute; top: 20px; right: 20px; padding: 10px 20px; background: #ff4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Logout</button>
         </div>
 
         <div class="stats">
@@ -557,6 +558,24 @@
             }
         });
 
+
+        // Logout functionality with Xumm logout
+        document.getElementById('logout-btn').addEventListener('click', async function () {
+            // Clear session storage
+            sessionStorage.removeItem('walletAddress');
+            sessionStorage.removeItem('walletId');
+            
+            // Clear Xumm JWT from localStorage
+            localStorage.removeItem('XummPkceJwt');
+            
+            // Sign out from Xumm
+            if (typeof xumm !== 'undefined') {
+                await xumm.logout();
+            }
+            
+            // Redirect to home page
+            window.location.href = 'index.html';
+        });
 
         handleQueryParameters();
         fetchWalletData(sessionStorage.getItem('walletAddress') || '');
