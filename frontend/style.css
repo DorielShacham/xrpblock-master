@@ -24,14 +24,6 @@ html {
   background-color: black;
 }
 
-#wallet__title {
-  gap: 1rem;
-  margin: 1rem;
-  height: 6rem;
-  color: white;
-  width: 25%;
-  font-size: xx-large;
-}
 #wallet__input {
   width: 50%;
   height: 5%;
@@ -47,7 +39,7 @@ html {
   height: 5%;
   cursor: pointer;
   width: 10rem;
-  background-color: #4dabf7;
+  background-color: #3052ff;
   color: white;
   border-radius: 6px;
   margin-bottom: 50vh;
@@ -60,94 +52,6 @@ html {
   opacity: 0.9;
 }
 
-#wallet__popup {
-  position: absolute;
-  top: 50vh;
-  left: 0;
-  width: 100%;
-  max-width: 500px;
-  margin-top: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 15px;
-  background: #fff;
-  border-radius: 8px;
-  z-index: 1000;
-  display: none;
-}
-
-#wallet__popup[open] {
-  display: block;
-}
-#xrp__name-card {
-  margin-left: 15px;
-}
-#chip__logo-card {
-  margin: 15px;
-}
-#wallet__id {
-  display: flex;
-  flex-wrap: wrap;
-  font-size: x-large;
-}
-#xrp__logo-card {
-  position: absolute;
-  bottom: 15px;
-  right: 10px;
-  width: 150px;
-  height: 50px;
-}
-
-/* table */
-#transactionsTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  font-size: 1rem;
-}
-
-#transactionsTable th,
-#transactionsTable td {
-  border: 1px solid #ddd;
-  padding: 0.5rem;
-  text-align: left;
-}
-
-#transactionsTable th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
-
-#transactionsTable tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-#transactionsTable tr:hover {
-  background-color: #ddd;
-}
-
-/* chart */
-#chartButtons {
-  display: flex;
-  justify-content: center;
-  margin: 1rem 0;
-  gap: 1rem;
-}
-
-#chartButtons button {
-  background-color: gainsboro;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  margin: 20px;
-  transition: 0.3s;
-}
-
-#chartButtons button:hover {
-  background-color: blue;
-}
 
 /* Logout button styles */
 #logout-btn {
@@ -166,7 +70,8 @@ html {
 
 #logout-btn:hover {
   background: #ff0000;
-  box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.187);
+  border: white 1px solid;
 }
 
 /* Make header position relative for logout button positioning */
