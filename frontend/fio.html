@@ -326,7 +326,7 @@
                 }
 
                 try {
-                    const res = await fetch('https://www.xrpblock.com/pay/paypal', {
+                    const res = await fetch('https://xrpblockserver.onrender.com/pay/paypal', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
@@ -352,7 +352,7 @@
                 const walletAddress = document.getElementById('wallet-address').value.trim();
 
                 try {
-                    const res = await fetch('https://www.xrpblock.com/pay/paypal/capture', {
+                    const res = await fetch('https://xrpblockserver.onrender.com/pay/paypal/capture', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
