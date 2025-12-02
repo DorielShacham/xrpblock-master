@@ -2,7 +2,8 @@
   "name": "simple-xrpl-wallet",
   "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "start": "node frontend/fioserver.js"
   },
   "devDependencies": {
     "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
