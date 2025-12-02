@@ -1,4 +1,12 @@
 {
+  "name": "xrpblock-server",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "fioserver.js",
+  "scripts": {
+    "start": "node fioserver.js",
+    "dev": "node fioserver.js"
+  },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@walletconnect/web3-provider": "^1.8.0",
