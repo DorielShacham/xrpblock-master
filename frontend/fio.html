@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy FIO Handle @israel - XRPBlock</title>
+    <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.paypal.com/sdk/js?client-id=ARnj3t-PLsF3VUWuiVJw06hU7miRXLzAHvFn8qn2g8N38RLNzPCyg38pAKl-94XcRAnYVNAWAlDcyUsE&currency=USD"></script>
+    <style>
+        * {
+            font-family: 'Markazi Text', serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+            margin: 0;
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(0, 170, 255, 0.4);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 170, 255, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            color: #00ffcc;
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #00aaff;
+            margin: 10px 0 0 0;
+        }
+
+        .domain-badge {
+            display: inline-block;
+            background: rgba(0, 170, 255, 0.2);
+            border: 1px solid #00aaff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1rem;
+            margin-top: 15px;
+            color: #00ffcc;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #00ffcc;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #00aaff;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+        }
+
+        .form-group input::placeholder {
+            color: #888;
+        }
+
+        .handle-preview {
+            background: rgba(0, 170, 255, 0.1);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .handle-preview strong {
+            color: #00ffcc;
+        }
+
+        .price-section {
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .price-section .price {
+            font-size: 2rem;
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+        .price-section .currency {
+            font-size: 1rem;
+            color: #00aaff;
+        }
+
+        .info-box {
+            background: rgba(255, 204, 0, 0.1);
+            border: 1px solid rgba(255, 204, 0, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+            color: #ffcc00;
+        }
+
+        .info-box strong {
+            color: #ffff00;
+        }
+
+        #paypal-button-container {
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+
+        .back-button {
+            display: inline-block;
+            background: #ff4444;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .back-button:hover {
+            background: #ff2222;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+        }
+
+        .features {
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .features li {
+            margin: 8px 0;
+            color: #00aaff;
+        }
+
+        .features li::before {
+            content: "✓ ";
+            color: #00ffcc;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .validation-message {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+            color: #ffcc00;
+        }
+
+        .validation-message.error {
+            color: #ff4444;
+        }
+
+        .validation-message.success {
+            color: #00ff88;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔗 FIO Handle Shop</h1>
+            <p>Own Your Web3 Identity</p>
+            <div class="domain-badge">@israel Domain</div>
+        </div>
+
+        <div class="form-group">
+            <label for="handle">Choose Your Handle Name:</label>
+            <input 
+                type="text" 
+                id="handle" 
+                placeholder="Enter desired name (e.g., crypto, web3, angel)" 
+                maxlength="30"
+            >
+            <div class="handle-preview">
+                Your handle: <strong id="handle-display">handle</strong>@israel
+            </div>
+        </div>
+
+        <div class="price-section">
+            <div class="price">$<span id="price">10</span></div>
+            <div class="currency">USD</div>
+        </div>
+
+        <div class="info-box">
+            <strong>ℹ️ What is a FIO Handle?</strong><br>
+            A FIO Handle is your Web3 username that works across all blockchain networks. Instead of sharing long wallet addresses, share your handle!
+        </div>
+
+        <ul class="features">
+            <li>Unique blockchain identity</li>
+            <li>Works on multiple chains</li>
+            <li>Secure & decentralized</li>
+            <li>Transfer between wallets</li>
+        </ul>
+
+        <div class="form-group">
+            <label for="wallet-address">Your Wallet Address:</label>
+            <input 
+                type="text" 
+                id="wallet-address" 
+                placeholder="Enter your wallet address (e.g., rN7n7otQDd6FczFgLdlqtyMVrAQV5d4abM)" 
+            >
+            <small style="color: #888; display: block; margin-top: 5px;">
+                This is where your FIO handle will be linked and active
+            </small>
+            <div id="wallet-validation" class="validation-message"></div>
+        </div>
+
+        <div id="paypal-button-container"></div>
+
+        <button class="back-button" onclick="window.location.href='dashboard.html'">
+            ← Back to Dashboard
+        </button>
+    </div>
+
+    <script>
+        // Update handle preview in real-time
+        document.getElementById('handle').addEventListener('input', (e) => {
+            const handleName = e.target.value || 'handle';
+            document.getElementById('handle-display').textContent = handleName;
+        });
+
+        // Validate wallet address format
+        function validateWalletAddress(address) {
+            // Basic XRP wallet address validation (starts with 'r' and 25-34 chars)
+            const xrpRegex = /^r[a-zA-Z0-9]{24,33}$/;
+            return xrpRegex.test(address);
+        }
+
+        // Real-time wallet validation
+        document.getElementById('wallet-address').addEventListener('input', (e) => {
+            const address = e.target.value.trim();
+            const validationMsg = document.getElementById('wallet-validation');
+            
+            if (address.length === 0) {
+                validationMsg.style.display = 'none';
+                return;
+            }
+
+            if (validateWalletAddress(address)) {
+                validationMsg.textContent = '✓ Valid wallet address';
+                validationMsg.classList.remove('error');
+                validationMsg.classList.add('success');
+                validationMsg.style.display = 'block';
+            } else {
+                validationMsg.textContent = '✗ Invalid wallet address format';
+                validationMsg.classList.remove('success');
+                validationMsg.classList.add('error');
+                validationMsg.style.display = 'block';
+            }
+        });
+
+        // Initialize PayPal button
+        paypal.Buttons({
+            createOrder: async function(data, actions) {
+                const handle = document.getElementById('handle').value.trim();
+                const walletAddress = document.getElementById('wallet-address').value.trim();
+
+                // Validation
+                if (!handle) {
+                    alert('❌ Please enter a handle name');
+                    return;
+                }
+
+                if (!walletAddress) {
+                    alert('❌ Please enter your wallet address');
+                    return;
+                }
+
+                if (!validateWalletAddress(walletAddress)) {
+                    alert('❌ Invalid wallet address format');
+                    return;
+                }
+
+                try {
+                    const res = await fetch('https://www.xrpblock.com/pay/paypal', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            handle, 
+                            walletAddress,
+                            domain: 'israel'
+                        })
+                    });
+                    const dataRes = await res.json();
+                    
+                    if (!dataRes.id) {
+                        throw new Error(dataRes.error || 'Failed to create order');
+                    }
+
+                    return dataRes.id;
+                } catch (error) {
+                    alert('❌ Error creating order: ' + error.message);
+                    throw error;
+                }
+            },
+            onApprove: async function(data, actions) {
+                const handle = document.getElementById('handle').value.trim();
+                const walletAddress = document.getElementById('wallet-address').value.trim();
+
+                try {
+                    const res = await fetch('https://www.xrpblock.com/pay/paypal/capture', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            orderId: data.orderID,
+                            handle,
+                            walletAddress,
+                            domain: 'israel'
+                        })
+                    });
+
+                    const result = await res.json();
+
+                    if (result.success) {
+                        alert(`✅ Success! Your handle ${handle}@israel is now active on your wallet!`);
+                        document.getElementById('handle').value = '';
+                        document.getElementById('wallet-address').value = '';
+                        document.getElementById('handle-display').textContent = 'handle';
+                        document.getElementById('wallet-validation').style.display = 'none';
+                    } else {
+                        alert('❌ Payment or registration failed: ' + (result.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    alert('❌ Error processing payment: ' + error.message);
+                }
+            },
+            onError: function(err) {
+                alert('❌ Payment error: ' + err.message);
+            },
+            style: {
+                layout: 'vertical',
+                color: 'blue',
+                shape: 'rect',
+                label: 'pay'
+            }
+        }).render('#paypal-button-container');
+    </script>
+
+</body>
+
+</html>

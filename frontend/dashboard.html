@@ -262,7 +262,7 @@
     <div class="dashboard">
         <div class="header">
             <h1>💠 XRPBlock Dashboard</h1>
-            <button id="logout-btn" style="position: absolute; top: 20px; right: 20px; padding: 10px 20px; background: #ff4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Logout</button>
+            <button id="logout-btn" style="position:fixed;">Logout</button>
         </div>
 
         <div class="stats">
@@ -291,8 +291,6 @@
             <div id="compare-wallet-result"></div>
         </div>
 
-
-
         <div class="charts" style="display: flex; height:20rem; width: 100%; ">
             <div class="card">
                 <canvas id="xrpChart"></canvas>
@@ -302,7 +300,28 @@
             </div>
         </div>
 
+
     </div>
+
+    <!-- Games Section -->
+    <div class="card stat-card" style="width: 100%; padding: 40px; text-align: center; margin: 20px 0;">
+        <div style="font-size: 2.5rem; margin-bottom: 20px;">🎮 Games</div>
+        <button id="games-btn"
+            style="padding: 15px 40px; font-size: 1.5rem; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+            Play Games
+        </button>
+    </div>
+
+    <!-- Web3 Extensions Section -->
+    <div class="card stat-card" style="width: 100%; padding: 40px; text-align: center; margin: 20px 0;">
+        <div style="font-size: 2.5rem; margin-bottom: 20px;">🔗 Web3 Extensions</div>
+        <button id="web3-btn"
+            style="padding: 15px 40px; font-size: 1.5rem; color: #000; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+            Open Web3 Tools
+        </button>
+    </div>
+
+
 
     <script>
         /* Ripple Background */
@@ -564,18 +583,29 @@
             // Clear session storage
             sessionStorage.removeItem('walletAddress');
             sessionStorage.removeItem('walletId');
-            
+
             // Clear Xumm JWT from localStorage
             localStorage.removeItem('XummPkceJwt');
-            
+
             // Sign out from Xumm
             if (typeof xumm !== 'undefined') {
                 await xumm.logout();
             }
-            
+
             // Redirect to home page
             window.location.href = 'index.html';
         });
+
+        // Games button redirect
+        document.getElementById('games-btn').addEventListener('click', function () {
+            window.location.href = 'games.html';
+        });
+
+        // Web3 Extensions button redirect
+        document.getElementById("web3-btn").addEventListener("click", () => {
+            window.location.href = "web3-extensions.html";
+        });
+
 
         handleQueryParameters();
         fetchWalletData(sessionStorage.getItem('walletAddress') || '');
