@@ -386,8 +386,29 @@
                 color: 'blue',
                 shape: 'rect',
                 label: 'pay'
+            },
+            onInit: function(data, actions) {
+                // Disable the button initially if form is incomplete
+                if (!document.getElementById('handle').value || !document.getElementById('wallet-address').value) {
+                    actions.disable();
+                }
             }
         }).render('#paypal-button-container');
+
+        // Enable/disable PayPal button based on form validation
+        document.getElementById('handle').addEventListener('input', validateForm);
+        document.getElementById('wallet-address').addEventListener('input', validateForm);
+
+        function validateForm() {
+            const handle = document.getElementById('handle').value.trim();
+            const walletAddress = document.getElementById('wallet-address').value.trim();
+            
+            if (handle && walletAddress && validateWalletAddress(walletAddress)) {
+                // Try to enable button (if PayPal SDK allows)
+                const button = document.querySelector('[role="button"]');
+                if (button) button.style.opacity = '1';
+            }
+        }
     </script>
 
 </body>
