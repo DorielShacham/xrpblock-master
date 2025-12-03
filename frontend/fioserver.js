@@ -76,13 +76,6 @@ app.post('/pay/paypal', async (req, res) => {
         request.prefer('return=representation');
         request.requestBody({
             intent: 'CAPTURE',
-            payment_source: {
-                paypal: {
-                    experience_context: {
-                        payment_method_preference: 'IMMEDIATE'
-                    }
-                }
-            },
             purchase_units: [
                 {
                     amount: {
