@@ -94,20 +94,24 @@ async function verifyXRPPayment(transactionHash, toAddress, amount, expectedDest
     }
 }
 
-// Register FIO Handle
-async function registerFIOHandle(handle, domain, userPublicKey) {
+// Register FIO Handle to User's Account
+async function registerFIOHandle(handle, domain, userFIOPublicKey) {
     try {
         console.log(`📝 Registering FIO handle: ${handle}@${domain}`);
+        console.log(`   Owner: ${userFIOPublicKey}`);
 
-        const result = await fioSDK.registerFioAddress(
-            `${handle}@${domain}`,
-            userPublicKey,
-            10000000000000,
-            'xrpblock@israel'
+        // Use registerOwnerFioAddress to register to the user's FIO account
+        const result = await fioSDK.registerOwnerFioAddress(
+            `${handle}@${domain}`,      // The handle to register
+            userFIOPublicKey,           // Owner's FIO public key
+            10000000000000,             // Max fee in SUFs
+            null,                       // No technology provider
+            null                        // No custom expiration
         );
 
         console.log(`✓ FIO Handle registered!`);
         console.log(`  Handle: ${handle}@${domain}`);
+        console.log(`  Owner: ${userFIOPublicKey}`);
         console.log(`  Transaction ID: ${result.transaction_id}`);
 
         return result;
@@ -145,17 +149,18 @@ app.post('/pay/xrp/details', async (req, res) => {
 // API Endpoint: Verify payment and register FIO handle
 app.post('/pay/xrp/verify', async (req, res) => {
     try {
-        const { handle, walletAddress, domain, transactionHash, expectedDestinationTag } = req.body;
+        const { handle, walletAddress, fioPublicKey, domain, transactionHash, expectedDestinationTag } = req.body;
 
-        if (!handle || !walletAddress || !domain || !transactionHash || expectedDestinationTag === undefined) {
+        if (!handle || !walletAddress || !fioPublicKey || !domain || !transactionHash || expectedDestinationTag === undefined) {
             return res.status(400).json({
-                error: 'Missing required fields: handle, walletAddress, domain, transactionHash, expectedDestinationTag'
+                error: 'Missing required fields: handle, walletAddress, fioPublicKey, domain, transactionHash, expectedDestinationTag'
             });
         }
 
         console.log(`\n🔍 Verifying XRP payment for ${handle}@${domain}`);
         console.log(`  Transaction: ${transactionHash}`);
         console.log(`  Expected Destination Tag: ${expectedDestinationTag}`);
+        console.log(`  FIO Owner: ${fioPublicKey}`);
 
         // Verify XRP payment and destination tag
         const paymentVerification = await verifyXRPPayment(
@@ -180,17 +185,18 @@ app.post('/pay/xrp/verify', async (req, res) => {
             const fioResult = await registerFIOHandle(
                 handle,
                 domain,
-                walletAddress // Use wallet address as the user's public key
+                fioPublicKey // Use user's FIO public key as the owner
             );
 
             res.json({
                 success: true,
-                message: `✓ FIO handle ${handle}@${domain} registered successfully!`,
+                message: `✓ FIO handle ${handle}@${domain} registered successfully to your FIO account!`,
                 xrp_transaction_id: transactionHash,
                 xrp_amount: paymentVerification.amount,
                 xrp_destination_tag: paymentVerification.destinationTag,
                 fio_transaction_id: fioResult.transaction_id,
                 fio_handle: `${handle}@${domain}`,
+                fio_owner: fioPublicKey,
                 user_wallet: walletAddress
             });
         } catch (fioError) {

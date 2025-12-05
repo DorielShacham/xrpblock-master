@@ -320,16 +320,29 @@
         </ul>
 
         <div class="form-group">
-            <label for="wallet-address">Your Wallet Address:</label>
+            <label for="wallet-address">Your XRP Wallet Address:</label>
             <input 
                 type="text" 
                 id="wallet-address" 
                 placeholder="Enter your wallet address (e.g., rN7n7otQDd6FczFgLdlqtyMVrAQV5d4abM)" 
             >
             <small style="color: #888; display: block; margin-top: 5px;">
-                This is where your FIO handle will be linked and active
+                This is where you'll receive payment confirmation
             </small>
             <div id="wallet-validation" class="validation-message"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="fio-public-key">Your FIO Public Key:</label>
+            <input 
+                type="text" 
+                id="fio-public-key" 
+                placeholder="Enter your FIO public key (e.g., FIO5KoitdBnwGwxfqWbwWWVbCGuViucJF8WYkV42PXapRJxCpNpg4)" 
+            >
+            <small style="color: #888; display: block; margin-top: 5px;">
+                This is where your FIO handle will be registered. You can find it in your FIO wallet or account settings.
+            </small>
+            <div id="fio-key-validation" class="validation-message"></div>
         </div>
 
         <div class="xrp-payment-section">
@@ -422,6 +435,13 @@
             return xrpRegex.test(address);
         }
 
+        // Validate FIO public key format
+        function validateFIOPublicKey(key) {
+            // FIO public keys start with 'FIO' and are approximately 50-56 characters
+            const fioRegex = /^FIO[a-zA-Z0-9]{47,53}$/;
+            return fioRegex.test(key);
+        }
+
         // Real-time wallet validation
         document.getElementById('wallet-address').addEventListener('input', (e) => {
             const address = e.target.value.trim();
@@ -445,10 +465,34 @@
             }
         });
 
+        // Real-time FIO public key validation
+        document.getElementById('fio-public-key').addEventListener('input', (e) => {
+            const key = e.target.value.trim();
+            const validationMsg = document.getElementById('fio-key-validation');
+            
+            if (key.length === 0) {
+                validationMsg.style.display = 'none';
+                return;
+            }
+
+            if (validateFIOPublicKey(key)) {
+                validationMsg.textContent = '✓ Valid FIO public key';
+                validationMsg.classList.remove('error');
+                validationMsg.classList.add('success');
+                validationMsg.style.display = 'block';
+            } else {
+                validationMsg.textContent = '✗ Invalid FIO public key format';
+                validationMsg.classList.remove('success');
+                validationMsg.classList.add('error');
+                validationMsg.style.display = 'block';
+            }
+        });
+
         // Verify XRP payment and register FIO handle
         async function verifyAndRegister() {
             const handle = document.getElementById('handle').value.trim();
             const walletAddress = document.getElementById('wallet-address').value.trim();
+            const fioPublicKey = document.getElementById('fio-public-key').value.trim();
             const txHash = document.getElementById('tx-hash').value.trim();
             const destinationTag = parseInt(document.getElementById('destination-tag').textContent);
 
@@ -459,12 +503,22 @@
             }
 
             if (!walletAddress) {
-                alert('❌ Please enter your wallet address');
+                alert('❌ Please enter your XRP wallet address');
                 return;
             }
 
             if (!validateWalletAddress(walletAddress)) {
-                alert('❌ Invalid wallet address format');
+                alert('❌ Invalid XRP wallet address format');
+                return;
+            }
+
+            if (!fioPublicKey) {
+                alert('❌ Please enter your FIO public key');
+                return;
+            }
+
+            if (!validateFIOPublicKey(fioPublicKey)) {
+                alert('❌ Invalid FIO public key format. It should start with "FIO" and be approximately 50-56 characters.');
                 return;
             }
 
@@ -479,7 +533,7 @@
             }
 
             try {
-                alert('⏳ Verifying payment... This may take a moment.');
+                alert('⏳ Verifying payment and registering handle... This may take a moment.');
 
                 const res = await fetch('https://xrpblockserver.onrender.com/pay/xrp/verify', {
                     method: 'POST',
@@ -487,22 +541,25 @@
                     body: JSON.stringify({
                         handle,
                         walletAddress,
+                        fioPublicKey,
                         domain: 'israel',
                         transactionHash: txHash,
-                        expectedDestinationTag: destinationTag // Backend will verify this matches the transaction tag
+                        expectedDestinationTag: destinationTag
                     })
                 });
 
                 const result = await res.json();
 
                 if (result.success) {
-                    alert(`✅ Success! Your FIO handle ${result.fio_handle} is now registered!`);
+                    alert(`✅ Success! Your FIO handle ${result.fio_handle} is now registered to your FIO account!`);
                     document.getElementById('handle').value = '';
                     document.getElementById('wallet-address').value = '';
+                    document.getElementById('fio-public-key').value = '';
                     document.getElementById('tx-hash').value = '';
                     document.getElementById('handle-display').textContent = 'handle';
                     document.getElementById('destination-tag').textContent = '-';
                     document.getElementById('wallet-validation').style.display = 'none';
+                    document.getElementById('fio-key-validation').style.display = 'none';
                 } else {
                     alert('❌ Registration failed: ' + (result.error || 'Unknown error'));
                 }
