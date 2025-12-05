@@ -32,7 +32,7 @@ const fioSDK = new FIOSDK(
 );
 
 // Verify XRP Payment on XRPL
-async function verifyXRPPayment(transactionHash, toAddress, amount, expectedMemo = null) {
+async function verifyXRPPayment(transactionHash, toAddress, amount, expectedDestinationTag = null) {
     try {
         const response = await fetch('https://xrpl.ws:6005/', {
             method: 'POST',
@@ -55,33 +55,26 @@ async function verifyXRPPayment(transactionHash, toAddress, amount, expectedMemo
             if (tx.Destination === toAddress && amountXRP >= parseFloat(amount)) {
                 console.log(`✓ Payment verified: ${amountXRP} XRP to ${toAddress}`);
 
-                // Extract and verify memo if provided
-                let transactionMemo = null;
-                if (tx.Memos && tx.Memos.length > 0) {
-                    try {
-                        const memoData = tx.Memos[0].Memo.MemoData;
-                        transactionMemo = Buffer.from(memoData, 'hex').toString('utf-8');
-                        console.log(`✓ Memo found in transaction: "${transactionMemo}"`);
-
-                        // Verify memo matches expected memo
-                        if (expectedMemo && transactionMemo !== expectedMemo) {
-                            console.error(`❌ Memo mismatch: Expected "${expectedMemo}" but got "${transactionMemo}"`);
-                            return {
-                                verified: false,
-                                error: `Memo mismatch. Expected "${expectedMemo}" but got "${transactionMemo}". Make sure you included the correct memo in your XRP transaction.`
-                            };
-                        }
-                    } catch (memoError) {
-                        console.error('⚠️ Error extracting memo:', memoError.message);
-                    }
-                } else {
-                    if (expectedMemo) {
-                        console.error(`❌ No memo found in transaction but expected "${expectedMemo}"`);
+                // Extract and verify destination tag if provided
+                const transactionTag = tx.DestinationTag;
+                if (expectedDestinationTag !== null) {
+                    if (!transactionTag) {
+                        console.error(`❌ No destination tag found in transaction but expected "${expectedDestinationTag}"`);
                         return {
                             verified: false,
-                            error: `No memo found in transaction. You must include the memo "${expectedMemo}" in your XRP transaction to register your handle.`
+                            error: `No destination tag found in transaction. You must include the destination tag "${expectedDestinationTag}" in your XRP transaction to register your handle.`
                         };
                     }
+
+                    if (transactionTag !== expectedDestinationTag) {
+                        console.error(`❌ Destination tag mismatch: Expected ${expectedDestinationTag} but got ${transactionTag}`);
+                        return {
+                            verified: false,
+                            error: `Destination tag mismatch. Expected "${expectedDestinationTag}" but got "${transactionTag}". Make sure you included the correct destination tag in your XRP transaction.`
+                        };
+                    }
+
+                    console.log(`✓ Destination tag verified: ${transactionTag}`);
                 }
 
                 return {
@@ -89,7 +82,7 @@ async function verifyXRPPayment(transactionHash, toAddress, amount, expectedMemo
                     txHash: transactionHash,
                     amount: amountXRP,
                     sourceAddress: tx.Account,
-                    memo: transactionMemo
+                    destinationTag: transactionTag
                 };
             }
         }
@@ -152,24 +145,24 @@ app.post('/pay/xrp/details', async (req, res) => {
 // API Endpoint: Verify payment and register FIO handle
 app.post('/pay/xrp/verify', async (req, res) => {
     try {
-        const { handle, walletAddress, domain, transactionHash, expectedMemo } = req.body;
+        const { handle, walletAddress, domain, transactionHash, expectedDestinationTag } = req.body;
 
-        if (!handle || !walletAddress || !domain || !transactionHash || !expectedMemo) {
+        if (!handle || !walletAddress || !domain || !transactionHash || expectedDestinationTag === undefined) {
             return res.status(400).json({
-                error: 'Missing required fields: handle, walletAddress, domain, transactionHash, expectedMemo'
+                error: 'Missing required fields: handle, walletAddress, domain, transactionHash, expectedDestinationTag'
             });
         }
 
         console.log(`\n🔍 Verifying XRP payment for ${handle}@${domain}`);
         console.log(`  Transaction: ${transactionHash}`);
-        console.log(`  Expected Memo: "${expectedMemo}"`);
+        console.log(`  Expected Destination Tag: ${expectedDestinationTag}`);
 
-        // Verify XRP payment and memo
+        // Verify XRP payment and destination tag
         const paymentVerification = await verifyXRPPayment(
             transactionHash,
             MERCHANT_WALLET,
             PAYMENT_AMOUNT,
-            expectedMemo // Pass expected memo for verification
+            expectedDestinationTag // Pass expected tag for verification
         );
 
         if (!paymentVerification.verified) {
@@ -181,7 +174,7 @@ app.post('/pay/xrp/verify', async (req, res) => {
         }
 
         console.log(`✓ Payment verified: ${paymentVerification.amount} XRP received`);
-        console.log(`✓ Memo verified: "${paymentVerification.memo}"`);
+        console.log(`✓ Destination tag verified: ${paymentVerification.destinationTag}`);
 
         try {
             const fioResult = await registerFIOHandle(
@@ -195,7 +188,7 @@ app.post('/pay/xrp/verify', async (req, res) => {
                 message: `✓ FIO handle ${handle}@${domain} registered successfully!`,
                 xrp_transaction_id: transactionHash,
                 xrp_amount: paymentVerification.amount,
-                xrp_memo: paymentVerification.memo,
+                xrp_destination_tag: paymentVerification.destinationTag,
                 fio_transaction_id: fioResult.transaction_id,
                 fio_handle: `${handle}@${domain}`,
                 user_wallet: walletAddress
@@ -207,7 +200,7 @@ app.post('/pay/xrp/verify', async (req, res) => {
                 message: 'Payment received and verified but FIO registration is pending',
                 xrp_transaction_id: transactionHash,
                 xrp_amount: paymentVerification.amount,
-                xrp_memo: paymentVerification.memo,
+                xrp_destination_tag: paymentVerification.destinationTag,
                 fio_handle: `${handle}@${domain}`,
                 warning: fioError.message
             });

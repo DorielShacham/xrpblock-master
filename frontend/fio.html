@@ -345,12 +345,12 @@
                     <span class="value">5 XRP</span>
                 </div>
                 <div class="detail-row">
-                    <span class="label" style="color: #ffff00; font-weight: bold;">⚠️ Memo (REQUIRED):</span>
-                    <span class="value" id="memo-display" style="color: #00ff88; font-weight: bold;">-</span>
-                    <button class="copy-btn" onclick="copyToClipboard('memo-display')" style="background: #ffcc00; color: #000;">📋 Copy Memo</button>
+                    <span class="label" style="color: #ffff00; font-weight: bold;">⚠️ Destination Tag:</span>
+                    <span class="value" id="destination-tag" style="color: #00ff88; font-weight: bold; font-size: 1.3rem;">-</span>
+                    <button class="copy-btn" onclick="copyToClipboard('destination-tag')" style="background: #ffcc00; color: #000;">📋 Copy Tag</button>
                 </div>
                 <div style="background: rgba(255, 255, 0, 0.15); border: 1px solid #ffcc00; border-radius: 6px; padding: 10px; margin-top: 10px; font-size: 0.9rem; color: #ffff00;">
-                    <strong>⚠️ IMPORTANT:</strong> You MUST include the memo above in your XRP transaction. Without it, your payment cannot be matched to your handle. Most wallets call this "Destination Tag", "Message", or "Memo".
+                    <strong>⚠️ IMPORTANT:</strong> You MUST include the Destination Tag above in your XRP transaction. Without it, your payment cannot be matched to your handle. Most wallets call this "Destination Tag" or "Tag".
                 </div>
             </div>
             
@@ -377,6 +377,19 @@
     </div>
 
     <script>
+        // Function to convert handle name to numeric destination tag
+        function generateDestinationTag(handle) {
+            // Create a numeric hash from the handle string
+            let hash = 0;
+            for (let i = 0; i < handle.length; i++) {
+                const char = handle.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            // Convert to positive number and keep it within XRP Destination Tag range (0-4294967295)
+            return Math.abs(hash) % 4294967296;
+        }
+
         // Copy to clipboard function
         function copyToClipboard(elementId) {
             const element = document.getElementById(elementId);
@@ -388,12 +401,18 @@
             });
         }
 
-        // Update handle preview and memo in real-time
+        // Update handle preview and destination tag in real-time
         document.getElementById('handle').addEventListener('input', (e) => {
             const handleName = e.target.value || 'handle';
             document.getElementById('handle-display').textContent = handleName;
-            // Update memo to match handle name
-            document.getElementById('memo-display').textContent = handleName + '@israel';
+            
+            // Generate and display destination tag
+            if (handleName && handleName !== 'handle') {
+                const tag = generateDestinationTag(handleName);
+                document.getElementById('destination-tag').textContent = tag;
+            } else {
+                document.getElementById('destination-tag').textContent = '-';
+            }
         });
 
         // Validate wallet address format
@@ -431,7 +450,7 @@
             const handle = document.getElementById('handle').value.trim();
             const walletAddress = document.getElementById('wallet-address').value.trim();
             const txHash = document.getElementById('tx-hash').value.trim();
-            const memo = handle + '@israel'; // The memo they should have used
+            const destinationTag = parseInt(document.getElementById('destination-tag').textContent);
 
             // Validation
             if (!handle) {
@@ -454,6 +473,11 @@
                 return;
             }
 
+            if (isNaN(destinationTag) || destinationTag < 0) {
+                alert('❌ Invalid destination tag');
+                return;
+            }
+
             try {
                 alert('⏳ Verifying payment... This may take a moment.');
 
@@ -465,7 +489,7 @@
                         walletAddress,
                         domain: 'israel',
                         transactionHash: txHash,
-                        expectedMemo: memo // Backend will verify this matches the transaction memo
+                        expectedDestinationTag: destinationTag // Backend will verify this matches the transaction tag
                     })
                 });
 
@@ -477,7 +501,7 @@
                     document.getElementById('wallet-address').value = '';
                     document.getElementById('tx-hash').value = '';
                     document.getElementById('handle-display').textContent = 'handle';
-                    document.getElementById('memo-display').textContent = '-';
+                    document.getElementById('destination-tag').textContent = '-';
                     document.getElementById('wallet-validation').style.display = 'none';
                 } else {
                     alert('❌ Registration failed: ' + (result.error || 'Unknown error'));
