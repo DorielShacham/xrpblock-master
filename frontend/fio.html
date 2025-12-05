@@ -333,7 +333,7 @@
         </div>
 
         <div class="xrp-payment-section">
-            <h2>💰 XRP Payment</h2>
+            <h2>💰 XRP Payment Instructions</h2>
             <div class="payment-details">
                 <div class="detail-row">
                     <span class="label">Send to:</span>
@@ -345,8 +345,12 @@
                     <span class="value">5 XRP</span>
                 </div>
                 <div class="detail-row">
-                    <span class="label">Your FIO Handle:</span>
-                    <span class="value" id="fio-handle-display">-</span>
+                    <span class="label" style="color: #ffff00; font-weight: bold;">⚠️ Memo (REQUIRED):</span>
+                    <span class="value" id="memo-display" style="color: #00ff88; font-weight: bold;">-</span>
+                    <button class="copy-btn" onclick="copyToClipboard('memo-display')" style="background: #ffcc00; color: #000;">📋 Copy Memo</button>
+                </div>
+                <div style="background: rgba(255, 255, 0, 0.15); border: 1px solid #ffcc00; border-radius: 6px; padding: 10px; margin-top: 10px; font-size: 0.9rem; color: #ffff00;">
+                    <strong>⚠️ IMPORTANT:</strong> You MUST include the memo above in your XRP transaction. Without it, your payment cannot be matched to your handle. Most wallets call this "Destination Tag", "Message", or "Memo".
                 </div>
             </div>
             
@@ -384,11 +388,12 @@
             });
         }
 
-        // Update handle preview in real-time
+        // Update handle preview and memo in real-time
         document.getElementById('handle').addEventListener('input', (e) => {
             const handleName = e.target.value || 'handle';
             document.getElementById('handle-display').textContent = handleName;
-            document.getElementById('fio-handle-display').textContent = handleName + '@israel';
+            // Update memo to match handle name
+            document.getElementById('memo-display').textContent = handleName + '@israel';
         });
 
         // Validate wallet address format
@@ -426,6 +431,7 @@
             const handle = document.getElementById('handle').value.trim();
             const walletAddress = document.getElementById('wallet-address').value.trim();
             const txHash = document.getElementById('tx-hash').value.trim();
+            const memo = handle + '@israel'; // The memo they should have used
 
             // Validation
             if (!handle) {
@@ -459,7 +465,7 @@
                         walletAddress,
                         domain: 'israel',
                         transactionHash: txHash,
-                        userPublicKey: walletAddress // FIO will map this to the user's FIO public key
+                        expectedMemo: memo // Backend will verify this matches the transaction memo
                     })
                 });
 
@@ -471,7 +477,7 @@
                     document.getElementById('wallet-address').value = '';
                     document.getElementById('tx-hash').value = '';
                     document.getElementById('handle-display').textContent = 'handle';
-                    document.getElementById('fio-handle-display').textContent = '-';
+                    document.getElementById('memo-display').textContent = '-';
                     document.getElementById('wallet-validation').style.display = 'none';
                 } else {
                     alert('❌ Registration failed: ' + (result.error || 'Unknown error'));
