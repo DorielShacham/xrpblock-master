@@ -14,8 +14,8 @@ app.use(cors());
 // Configuration
 const FIO_PUBLIC_KEY = process.env.FIO_PUBLIC_KEY;
 const FIO_PRIVATE_KEY = process.env.FIO_PRIVATE_KEY;
-const MERCHANT_WALLET = 'r9UJNf6tvojk9CXkAVKe88ycCyxjLAh6DY';
-const PAYMENT_AMOUNT = '10';
+const MERCHANT_WALLET = 'r49QFFRBBDd5ieMGWwZHGbkVVSmXjjPhkw';
+const PAYMENT_AMOUNT = '5';
 const FIO_API = 'https://api-app.fio.net/public-api';
 
 if (!FIO_PUBLIC_KEY || !FIO_PRIVATE_KEY) {
