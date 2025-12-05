@@ -7,7 +7,6 @@
     <title>Buy FIO Handle @israel - XRPBlock</title>
     <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@400..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script src="https://www.paypal.com/sdk/js?client-id=ARnj3t-PLsF3VUWuiVJw06hU7miRXLzAHvFn8qn2g8N38RLNzPCyg38pAKl-94XcRAnYVNAWAlDcyUsE&currency=USD"></script>
     <style>
         * {
             font-family: 'Markazi Text', serif;
@@ -150,6 +149,88 @@
             border: 1px solid rgba(0, 170, 255, 0.2);
         }
 
+        .xrp-payment-section {
+            background: rgba(255, 200, 0, 0.1);
+            border: 2px solid rgba(255, 200, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .xrp-payment-section h2 {
+            margin-top: 0;
+            color: #ffcc00;
+            text-align: center;
+        }
+
+        .payment-details {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 200, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+        }
+
+        .detail-row .label {
+            color: #00aaff;
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .detail-row .value {
+            color: #00ffcc;
+            font-family: monospace;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: #00aaff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: 10px;
+            transition: 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #00ffcc;
+            color: #000;
+        }
+
+        .register-btn {
+            display: block;
+            width: 100%;
+            background: #00ffcc;
+            color: #000;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+
+        .register-btn:hover {
+            background: #00aaff;
+            color: white;
+        }
+
         .back-button {
             display: inline-block;
             background: #ff4444;
@@ -230,8 +311,8 @@
         </div>
 
         <div class="price-section">
-            <div class="price">$<span id="price">10</span></div>
-            <div class="currency">USD</div>
+            <div class="price"><span id="price">10</span> XRP</div>
+            <div class="currency">Ripple (XRP)</div>
         </div>
 
         <div class="info-box">
@@ -259,7 +340,40 @@
             <div id="wallet-validation" class="validation-message"></div>
         </div>
 
-        <div id="paypal-button-container"></div>
+        <div class="xrp-payment-section">
+            <h2>💰 XRP Payment</h2>
+            <div class="payment-details">
+                <div class="detail-row">
+                    <span class="label">Send to:</span>
+                    <span class="value" id="merchant-wallet">r9UJNf6tvojk9CXkAVKe88ycCyxjLAh6DY</span>
+                    <button class="copy-btn" onclick="copyToClipboard('merchant-wallet')">📋 Copy</button>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Amount:</span>
+                    <span class="value">10 XRP</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Your FIO Handle:</span>
+                    <span class="value" id="fio-handle-display">-</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tx-hash">Transaction Hash (after you send XRP):</label>
+                <input 
+                    type="text" 
+                    id="tx-hash" 
+                    placeholder="Paste your XRP transaction hash here (TXID)"
+                >
+                <small style="color: #888; display: block; margin-top: 5px;">
+                    You can find this in your wallet after sending the XRP
+                </small>
+            </div>
+
+            <button class="register-btn" onclick="verifyAndRegister()">
+                ✓ Verify Payment & Register Handle
+            </button>
+        </div>
 
         <button class="back-button" onclick="window.location.href='dashboard.html'">
             ← Back to Dashboard
@@ -267,10 +381,22 @@
     </div>
 
     <script>
+        // Copy to clipboard function
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✓ Copied to clipboard: ' + text);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
         // Update handle preview in real-time
         document.getElementById('handle').addEventListener('input', (e) => {
             const handleName = e.target.value || 'handle';
             document.getElementById('handle-display').textContent = handleName;
+            document.getElementById('fio-handle-display').textContent = handleName + '@israel';
         });
 
         // Validate wallet address format
@@ -303,110 +429,64 @@
             }
         });
 
-        // Initialize PayPal button
-        paypal.Buttons({
-            createOrder: async function(data, actions) {
-                const handle = document.getElementById('handle').value.trim();
-                const walletAddress = document.getElementById('wallet-address').value.trim();
-
-                // Validation
-                if (!handle) {
-                    alert('❌ Please enter a handle name');
-                    return;
-                }
-
-                if (!walletAddress) {
-                    alert('❌ Please enter your wallet address');
-                    return;
-                }
-
-                if (!validateWalletAddress(walletAddress)) {
-                    alert('❌ Invalid wallet address format');
-                    return;
-                }
-
-                try {
-                    const res = await fetch('https://xrpblockserver.onrender.com/pay/paypal', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            handle, 
-                            walletAddress,
-                            domain: 'israel'
-                        })
-                    });
-                    const dataRes = await res.json();
-                    
-                    if (!dataRes.id) {
-                        throw new Error(dataRes.error || 'Failed to create order');
-                    }
-
-                    return dataRes.id;
-                } catch (error) {
-                    alert('❌ Error creating order: ' + error.message);
-                    throw error;
-                }
-            },
-            onApprove: async function(data, actions) {
-                const handle = document.getElementById('handle').value.trim();
-                const walletAddress = document.getElementById('wallet-address').value.trim();
-
-                try {
-                    const res = await fetch('https://xrpblockserver.onrender.com/pay/paypal/capture', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            orderId: data.orderID,
-                            handle,
-                            walletAddress,
-                            domain: 'israel'
-                        })
-                    });
-
-                    const result = await res.json();
-
-                    if (result.success) {
-                        alert(`✅ Success! Your handle ${handle}@israel is now active on your wallet!`);
-                        document.getElementById('handle').value = '';
-                        document.getElementById('wallet-address').value = '';
-                        document.getElementById('handle-display').textContent = 'handle';
-                        document.getElementById('wallet-validation').style.display = 'none';
-                    } else {
-                        alert('❌ Payment or registration failed: ' + (result.error || 'Unknown error'));
-                    }
-                } catch (error) {
-                    alert('❌ Error processing payment: ' + error.message);
-                }
-            },
-            onError: function(err) {
-                alert('❌ Payment error: ' + err.message);
-            },
-            style: {
-                layout: 'vertical',
-                color: 'blue',
-                shape: 'rect',
-                label: 'pay'
-            },
-            onInit: function(data, actions) {
-                // Disable the button initially if form is incomplete
-                if (!document.getElementById('handle').value || !document.getElementById('wallet-address').value) {
-                    actions.disable();
-                }
-            }
-        }).render('#paypal-button-container');
-
-        // Enable/disable PayPal button based on form validation
-        document.getElementById('handle').addEventListener('input', validateForm);
-        document.getElementById('wallet-address').addEventListener('input', validateForm);
-
-        function validateForm() {
+        // Verify XRP payment and register FIO handle
+        async function verifyAndRegister() {
             const handle = document.getElementById('handle').value.trim();
             const walletAddress = document.getElementById('wallet-address').value.trim();
-            
-            if (handle && walletAddress && validateWalletAddress(walletAddress)) {
-                // Try to enable button (if PayPal SDK allows)
-                const button = document.querySelector('[role="button"]');
-                if (button) button.style.opacity = '1';
+            const txHash = document.getElementById('tx-hash').value.trim();
+
+            // Validation
+            if (!handle) {
+                alert('❌ Please enter a handle name');
+                return;
+            }
+
+            if (!walletAddress) {
+                alert('❌ Please enter your wallet address');
+                return;
+            }
+
+            if (!validateWalletAddress(walletAddress)) {
+                alert('❌ Invalid wallet address format');
+                return;
+            }
+
+            if (!txHash) {
+                alert('❌ Please paste your transaction hash');
+                return;
+            }
+
+            try {
+                alert('⏳ Verifying payment... This may take a moment.');
+
+                const res = await fetch('https://xrpblockserver.onrender.com/pay/xrp/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        handle,
+                        walletAddress,
+                        domain: 'israel',
+                        transactionHash: txHash,
+                        userPublicKey: walletAddress // FIO will map this to the user's FIO public key
+                    })
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    alert(`✅ Success! Your FIO handle ${result.fio_handle} is now registered!`);
+                    document.getElementById('handle').value = '';
+                    document.getElementById('wallet-address').value = '';
+                    document.getElementById('tx-hash').value = '';
+                    document.getElementById('handle-display').textContent = 'handle';
+                    document.getElementById('fio-handle-display').textContent = '-';
+                    document.getElementById('wallet-validation').style.display = 'none';
+                } else {
+                    alert('❌ Registration failed: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+                console.error('Error:', error);
             }
         }
     </script>

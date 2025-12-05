@@ -2,8 +2,8 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import paypal from '@paypal/checkout-server-sdk';
 import fetch from 'node-fetch';
+import { FIOSDK } from '@fioprotocol/fiosdk';
 
 dotenv.config();
 
@@ -11,179 +11,193 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// PayPal Configuration
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
-const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
+// Configuration
 const FIO_PUBLIC_KEY = process.env.FIO_PUBLIC_KEY;
-const FIO_REFERRAL_CODE = process.env.FIO_REFERRAL_CODE || 'xrpblock';
-
-if (!PAYPAL_CLIENT_ID || !PAYPAL_SECRET) {
-    console.error('❌ Missing PAYPAL_CLIENT_ID or PAYPAL_SECRET in .env file');
-    process.exit(1);
-}
-
-if (!FIO_PUBLIC_KEY) {
-    console.error('❌ Missing FIO_PUBLIC_KEY in .env file');
-    process.exit(1);
-}
-
-// Initialize PayPal client
-const environment = new paypal.core.SandboxEnvironment(PAYPAL_CLIENT_ID, PAYPAL_SECRET);
-const client = new paypal.core.PayPalHttpClient(environment);
-
-// FIO API endpoint
+const FIO_PRIVATE_KEY = process.env.FIO_PRIVATE_KEY;
+const MERCHANT_WALLET = 'r9UJNf6tvojk9CXkAVKe88ycCyxjLAh6DY';
+const PAYMENT_AMOUNT = '10';
 const FIO_API = 'https://api-app.fio.net/public-api';
 
-// Register FIO Handle via FIO API
-async function registerFIOHandle(handle, domain, publicKey, referralCode) {
+if (!FIO_PUBLIC_KEY || !FIO_PRIVATE_KEY) {
+    console.error('❌ Missing FIO_PUBLIC_KEY or FIO_PRIVATE_KEY in .env file');
+    process.exit(1);
+}
+
+// Initialize FIO SDK
+const fioSDK = new FIOSDK(
+    FIO_PRIVATE_KEY,
+    FIO_PUBLIC_KEY,
+    FIO_API,
+    fetch
+);
+
+// Verify XRP Payment on XRPL
+async function verifyXRPPayment(transactionHash, toAddress, amount) {
     try {
-        const response = await fetch(`${FIO_API}/buy-address`, {
+        const response = await fetch('https://xrpl.ws:6005/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                address: `${handle}@${domain}`,
-                publicKey: publicKey,
-                referralCode: referralCode
+                method: 'tx',
+                params: {
+                    transaction: transactionHash,
+                    binary: false
+                }
             })
         });
 
         const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.message || 'FIO registration failed');
+
+        if (data.result && data.result.status === 'success') {
+            const tx = data.result.tx;
+            const amountXRP = parseInt(tx.Amount) / 1000000;
+
+            if (tx.Destination === toAddress && amountXRP >= parseFloat(amount)) {
+                console.log(`✓ Payment verified: ${amountXRP} XRP to ${toAddress}`);
+                return {
+                    verified: true,
+                    txHash: transactionHash,
+                    amount: amountXRP,
+                    sourceAddress: tx.Account
+                };
+            }
         }
 
-        return data;
+        return { verified: false, error: 'Payment verification failed' };
+    } catch (error) {
+        console.error('❌ XRP Verification Error:', error);
+        return { verified: false, error: error.message };
+    }
+}
+
+// Register FIO Handle
+async function registerFIOHandle(handle, domain, userPublicKey) {
+    try {
+        console.log(`📝 Registering FIO handle: ${handle}@${domain}`);
+
+        const result = await fioSDK.registerFioAddress(
+            `${handle}@${domain}`,
+            userPublicKey,
+            10000000000000,
+            'xrpblock@israel'
+        );
+
+        console.log(`✓ FIO Handle registered!`);
+        console.log(`  Handle: ${handle}@${domain}`);
+        console.log(`  Transaction ID: ${result.transaction_id}`);
+
+        return result;
     } catch (error) {
         console.error('❌ FIO Registration Error:', error);
         throw error;
     }
 }
 
-// Create PayPal Order
-app.post('/pay/paypal', async (req, res) => {
+// API Endpoint: Get payment details
+app.post('/pay/xrp/details', async (req, res) => {
     try {
         const { handle, walletAddress, domain } = req.body;
 
-        // Validate inputs
         if (!handle || !walletAddress || !domain) {
-            return res.status(400).json({ error: 'Missing required fields: handle, walletAddress, domain' });
+            return res.status(400).json({
+                error: 'Missing required fields: handle, walletAddress, domain'
+            });
         }
 
-        const request = new paypal.orders.OrdersCreateRequest();
-        request.prefer('return=representation');
-        request.requestBody({
-            intent: 'CAPTURE',
-            purchase_units: [
-                {
-                    amount: {
-                        currency_code: 'USD',
-                        value: '10.00'
-                    },
-                    description: `FIO Handle: ${handle}@${domain}`,
-                    custom_id: `${handle}@${domain}|${walletAddress}`
-                }
-            ],
-            application_context: {
-                brand_name: 'XRPBlock',
-                locale: 'en-US',
-                landing_page: 'LOGIN',
-                user_action: 'PAY_NOW',
-                return_url: `${process.env.BASE_URL || 'https://www.xrpblock.com'}/fio.html?success=true`,
-                cancel_url: `${process.env.BASE_URL || 'https://www.xrpblock.com'}/fio.html?success=false`
-            }
+        res.json({
+            success: true,
+            merchant_wallet: MERCHANT_WALLET,
+            amount_xrp: PAYMENT_AMOUNT,
+            fio_handle: `${handle}@${domain}`,
+            user_wallet: walletAddress,
+            instructions: `Send ${PAYMENT_AMOUNT} XRP to ${MERCHANT_WALLET} to register your FIO handle`
         });
-
-        const order = await client.execute(request);
-        
-        console.log(`✓ Order created: ${order.result.id} for ${handle}@${domain}`);
-        res.json({ id: order.result.id });
-
     } catch (error) {
-        console.error('❌ Error creating PayPal order:', error);
+        console.error('❌ Error:', error);
         res.status(500).json({ error: error.message });
     }
 });
 
-// Capture PayPal Order & Register FIO Handle
-app.post('/pay/paypal/capture', async (req, res) => {
+// API Endpoint: Verify payment and register FIO handle
+app.post('/pay/xrp/verify', async (req, res) => {
     try {
-        const { orderId, handle, walletAddress, domain } = req.body;
+        const { handle, walletAddress, domain, transactionHash, userPublicKey } = req.body;
 
-        // Validate inputs
-        if (!orderId || !handle || !walletAddress) {
-            return res.status(400).json({ success: false, error: 'Missing required fields' });
-        }
-
-        const request = new paypal.orders.OrdersCaptureRequest(orderId);
-        request.requestBody({});
-
-        const capture = await client.execute(request);
-
-        // Check if payment was successful
-        if (capture.result.status === 'COMPLETED') {
-            console.log(`✓ Payment captured for ${handle}@${domain}`);
-            console.log(`  Transaction ID: ${capture.result.id}`);
-            console.log(`  Wallet: ${walletAddress}`);
-
-            // Now register the FIO handle
-            console.log(`📝 Registering FIO handle: ${handle}@${domain}`);
-            
-            try {
-                const fioResult = await registerFIOHandle(
-                    handle,
-                    domain,
-                    FIO_PUBLIC_KEY,
-                    FIO_REFERRAL_CODE
-                );
-
-                console.log(`✓ FIO Handle registered!`);
-                console.log(`  Order ID: ${fioResult.order_id}`);
-
-                res.json({
-                    success: true,
-                    message: `FIO handle ${handle}@${domain} registered successfully!`,
-                    paypalTransactionId: capture.result.id,
-                    fioOrderId: fioResult.order_id,
-                    fioHandle: `${handle}@${domain}`,
-                    walletAddress: walletAddress
-                });
-            } catch (fioError) {
-                console.error('❌ FIO registration failed:', fioError.message);
-                res.status(202).json({
-                    success: true,
-                    message: 'Payment successful but FIO registration pending',
-                    paypalTransactionId: capture.result.id,
-                    fioHandle: `${handle}@${domain}`,
-                    walletAddress: walletAddress,
-                    warning: fioError.message
-                });
-            }
-        } else {
-            res.json({
-                success: false,
-                error: `Payment status: ${capture.result.status}`
+        if (!handle || !walletAddress || !domain || !transactionHash || !userPublicKey) {
+            return res.status(400).json({
+                error: 'Missing required fields'
             });
         }
 
+        console.log(`\n🔍 Verifying XRP payment for ${handle}@${domain}`);
+        console.log(`  Transaction: ${transactionHash}`);
+
+        const paymentVerification = await verifyXRPPayment(
+            transactionHash,
+            MERCHANT_WALLET,
+            PAYMENT_AMOUNT
+        );
+
+        if (!paymentVerification.verified) {
+            console.error('❌ Payment verification failed');
+            return res.status(402).json({
+                success: false,
+                error: 'XRP payment not found or insufficient amount'
+            });
+        }
+
+        console.log(`✓ Payment verified: ${paymentVerification.amount} XRP received`);
+
+        try {
+            const fioResult = await registerFIOHandle(
+                handle,
+                domain,
+                userPublicKey
+            );
+
+            res.json({
+                success: true,
+                message: `✓ FIO handle ${handle}@${domain} registered successfully!`,
+                xrp_transaction_id: transactionHash,
+                xrp_amount: paymentVerification.amount,
+                fio_transaction_id: fioResult.transaction_id,
+                fio_handle: `${handle}@${domain}`,
+                user_wallet: walletAddress
+            });
+        } catch (fioError) {
+            console.error('⚠️ FIO registration failed:', fioError.message);
+            res.status(202).json({
+                success: true,
+                message: 'Payment received but FIO registration is pending',
+                xrp_transaction_id: transactionHash,
+                xrp_amount: paymentVerification.amount,
+                fio_handle: `${handle}@${domain}`,
+                warning: fioError.message
+            });
+        }
     } catch (error) {
-        console.error('❌ Error capturing PayPal order:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('❌ Verification Error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
 });
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.json({ status: 'Server running' });
+    res.json({
+        status: 'Server running',
+        merchant_wallet: MERCHANT_WALLET,
+        payment_amount_xrp: PAYMENT_AMOUNT
+    });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`\n🚀 FIO Server running on port ${PORT}`);
-    console.log(`📍 Base URL: ${process.env.BASE_URL || 'http://localhost:3000'}`);
-    console.log(`💳 PayPal Client ID: ${PAYPAL_CLIENT_ID.substring(0, 10)}...`);
+    console.log(`\n🚀 FIO XRP Payment Server running on port ${PORT}`);
+    console.log(`💰 Merchant Wallet: ${MERCHANT_WALLET}`);
+    console.log(`💵 Payment Amount: ${PAYMENT_AMOUNT} XRP`);
     console.log(`🔑 FIO Public Key: ${FIO_PUBLIC_KEY.substring(0, 10)}...`);
-    console.log(`✓ Ready to accept payments!\n`);
+    console.log(`✓ Ready to accept XRP payments!\n`);
 });
